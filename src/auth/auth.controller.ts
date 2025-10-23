@@ -1,15 +1,23 @@
 import { AuthService } from "./auth.service";
-import { Body, Controller, HttpException, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpException, Post, Req, UseGuards } from "@nestjs/common";
 import { LoginInfoDto } from "./dto/auth.dto";
+import type { Request } from "express";
+import { LocalGuard } from "./guards/local.guard";
+import { JwtAuthGuard } from "./guards/jwt.guard";
 
 @Controller("auth")
 export class AuthController {
   constructor(private AuthService: AuthService) {}
+
+  @UseGuards(LocalGuard)
   @Post("login")
-  async login(@Body() authPayload: LoginInfoDto) {
-    const user = await this.AuthService.validateUser(authPayload);
-    if (!user)
-      throw new HttpException("There was a problem with the login", 401);
-    return user;
+  login(@Req() req: Request) { 
+    return req.user
+  }
+
+  @Get("status")
+  @UseGuards(JwtAuthGuard)
+  status(@Req() req: Request) {
+    return req.user;
   }
 }
