@@ -1,5 +1,15 @@
+import React from 'react'
+import { Route, HashRouter as Router, Routes } from 'react-router-dom'
+
+import Login from './pages/Login'
 function App(): React.JSX.Element {
-  return <div>Eita como ele joga de bola</div>
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+      </Routes>
+    </Router>
+  )
 }
 
 export default App
