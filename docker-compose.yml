@@ -1,37 +1,42 @@
 version: '3.9'
 
 services:
-  nestjs-app:
-    build: .
-    container_name: nestjs-app
-    ports:
-      - "${APP_PORT}:3000"
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-    networks:
-      - nest-network
-
-
   postgres:
     image: postgres:16
-    container_name: postgres
+    container_name: sgp-db
     restart: always
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sgp-db
     ports:
-      - "${DB_PORT}:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - nest-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sgp-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: sgp-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/sgp-db?schema=public"
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    command: >
+      sh -c "
+        echo 'Esperando banco ficar pronto...' &&
+        npx prisma migrate deploy &&
+        npx prisma db seed &&
+        node dist/main.js
+      "
 
 volumes:
   postgres_data:
-
-networks:
-  nest-network:
-    driver: bridge

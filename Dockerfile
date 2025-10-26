@@ -1,16 +1,29 @@
-FROM node:22-alpine
+# Etapa 1: build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
 COPY package*.json ./
-COPY prisma ./prisma
+RUN npm ci
 
-RUN npm install
+COPY . .
 
+# Gera o Prisma Client para ambiente Linux-Alpine
+RUN npx prisma generate
 
-COPY tsconfig.json ./
-
-EXPOSE 3000
-
+# Gera build do NestJS
 RUN npm run build
-CMD ["sh", "-c", "npx prisma migrate dev && npx prisma db seed && npm run start"]
+
+# Etapa 2: execução
+FROM node:22-alpine
+
+WORKDIR /app
+
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/prisma ./prisma
+
+ENV NODE_ENV=production
+
+CMD [ "sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node dist/main.js" ]
