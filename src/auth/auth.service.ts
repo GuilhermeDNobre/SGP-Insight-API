@@ -17,7 +17,7 @@ export class AuthService {
     if (!user) return null;
     if (user.disabled) return null;
     if (user.deleted) return null;
-    const { disabled, deleted, created_at, updated_at, ...result } = user;
+    const { disabled, deleted, created_at, updated_at, firstName, ...result } = user;
     return this.jwtService.sign(result);
   }
 
@@ -26,4 +26,4 @@ export class AuthService {
     if (!user) return null;
     return this.jwtService.sign(user);
   }
-}
+} 
