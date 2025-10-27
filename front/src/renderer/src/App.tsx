@@ -1,15 +1,8 @@
+import AppRoutes from '@routes/AppRoutes'
 import React from 'react'
-import { Route, HashRouter as Router, Routes } from 'react-router-dom'
 
-import Login from './pages/Login'
 function App(): React.JSX.Element {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Login />} />
-      </Routes>
-    </Router>
-  )
+  return <AppRoutes />
 }
 
 export default App
