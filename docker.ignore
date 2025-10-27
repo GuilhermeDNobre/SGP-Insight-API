@@ -3,4 +3,3 @@ dist
 Dockerfile
 docker-compose.yml
 .git
-.env

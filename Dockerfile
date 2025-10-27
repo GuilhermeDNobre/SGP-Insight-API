@@ -26,4 +26,4 @@ COPY --from=build /app/prisma ./prisma
 
 ENV NODE_ENV=production
 
-CMD [ "sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node dist/main.js" ]
+CMD [ "sh", "-c", "npx prisma migrate dev && npx prisma db seed && node dist/main.js" ]

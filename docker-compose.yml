@@ -1,38 +1,41 @@
-version: '3.9'
 
 services:
   postgres:
     image: postgres:16
     container_name: sgp-db
     restart: always
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: sgp-db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d sgp-db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: sgp-api
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/sgp-db?schema=public"
-      NODE_ENV: production
+    env_file:
+      - .env
     ports:
       - "3000:3000"
     command: >
       sh -c "
-        echo 'Esperando banco ficar pronto...' &&
+        echo '🚀 Iniciando API NestJS em produção...' &&
         npx prisma migrate deploy &&
         npx prisma db seed &&
         node dist/main.js
