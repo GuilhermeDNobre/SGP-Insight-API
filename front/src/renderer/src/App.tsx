@@ -1,5 +1,8 @@
+import AppRoutes from '@routes/AppRoutes'
+import React from 'react'
+
 function App(): React.JSX.Element {
-  return <div>Eita como ele joga de bola</div>
+  return <AppRoutes />
 }
 
 export default App
