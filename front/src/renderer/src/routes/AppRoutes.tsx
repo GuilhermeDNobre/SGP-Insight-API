@@ -6,7 +6,7 @@ export default function AppRoutes(): React.JSX.Element {
     <BrowserRouter>
       <Routes>
         {/* Login e rota padrão */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Login />} />
       </Routes>
     </BrowserRouter>
   )
