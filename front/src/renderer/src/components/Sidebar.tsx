@@ -30,7 +30,7 @@ export default function Sidebar(): React.JSX.Element {
 
       {/* Sidebar */}
       <div
-        className={`flex flex-col fixed top-0 left-0 h-full w-64 z-50 bg-[var(--pri)] text-white transform transition-transform duration-300 ${
+        className={`flex flex-col fixed top-0 left-0 h-full w-64 z-50 bg-(--pri) text-white transform transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
