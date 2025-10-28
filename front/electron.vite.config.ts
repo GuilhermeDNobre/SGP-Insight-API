@@ -17,7 +17,8 @@ export default defineConfig({
         '@pages': resolve(__dirname, 'src/renderer/src/pages'),
         '@components': resolve(__dirname, 'src/renderer/src/components'),
         '@assets': resolve(__dirname, 'src/renderer/src/assets'),
-        '@routes': resolve(__dirname, 'src/renderer/src/routes')
+        '@routes': resolve(__dirname, 'src/renderer/src/routes'),
+        '@hooks': resolve(__dirname, 'src/renderer/src/hooks')
       }
     },
     plugins: [react(), tailwindcss()]
