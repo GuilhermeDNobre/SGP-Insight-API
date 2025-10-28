@@ -17,17 +17,17 @@ export default function Input({
   const isPassword = type === 'password'
 
   return (
-    <div className="flex flex-col w-full">
-      <label className="text-base font-semibold">{label}</label>
+    <div className="flex flex-col w-full gap-1">
+      <label className="text-sm font-medium text---black)">{label}</label>
 
       <div className="relative">
         <input
           {...props}
           type={isPassword && showPassword ? 'text' : type}
-          className={`w-full rounded-md bg-(--white) border border-(--black) px-3 py-2 text-sm
-          text-(--black) placeholder:(--gray)
-          focus:outline-none focus:ring-2 focus:ring-(--pri) focus:border-(--pri)
-          hover:border-(--pri) transition-colors ${className}`}
+          className={`w-full rounded-md border border-(--light-gray) bg---white)
+            px-3 py-2 text-sm text-(--black) placeholder:text-(--gray)
+            focus:outline-none focus:ring-2 focus:ring-(--pri) focus:border---pri)
+            hover:border-(--pri) transition-colors ${className}`}
         />
 
         {isPassword && (
