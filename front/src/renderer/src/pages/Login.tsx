@@ -2,6 +2,8 @@ import React from 'react'
 import Logo from '@assets/icons/Logo.svg'
 import Input from '@components/Input'
 import { useProfile } from '@hooks/useProfile'
+import Button from '@renderer/components/Button'
+import { useNavigate } from 'react-router-dom'
 
 function Login(): React.JSX.Element {
   const {
@@ -12,8 +14,10 @@ function Login(): React.JSX.Element {
     errors
   } = useProfile()
   
+  const navigate = useNavigate()
+  
   return (
-    <div className="w-screen h-screen bg-[var(--sec)] flex-col flex justify-center items-center relative gap-9">
+    <form className="w-screen h-screen bg-[var(--sec)] flex-col flex justify-center items-center relative gap-9">
       <div className="">
         <img src={Logo} alt="Logo SGP" className="w-80" />
       </div>
@@ -39,12 +43,33 @@ function Login(): React.JSX.Element {
           error={errors.currentPassword}
         />
 
+        <Button
+          label="Entrar"
+          variant="primary"
+          type='submit'
+          collect={() => 
+            ({
+              email: userData.email,
+              password: passwords.currentPassword
+            })
+          } // Faltam dados para coletar
+          onAction={(data) => {
+            console.log('Dados de login: ', data)
+            // Chamar login handler
+            navigate("/Home")
+          }}
+        />
+
         <div className='text-[12px] text-white'>
-          Ainda não é cadastrado? Cadastre-se
-          <span className='text-[var(--ter)]'> aqui.</span>
+          Ainda não é cadastrado? Cadastre-se 
+          <a href='' className='text-[var(--ter)]' onClick={() => {
+            //navigate("/Register")
+          }}> 
+            aqui. 
+          </a>
         </div>
       </div>
-    </div>
+    </form>
   )
 }
 
