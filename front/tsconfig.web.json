@@ -15,7 +15,8 @@
       "@pages/*": ["src/renderer/src/pages/*"],
       "@components/*": ["src/renderer/src/components/*"],
       "@assets/*": ["src/renderer/src/assets/*"],
-      "@routes/*": ["src/renderer/src/routes/*"]
+      "@routes/*": ["src/renderer/src/routes/*"],
+      "@hooks/*": ["src/renderer/src/hooks/*"]
     }
   }
 }
