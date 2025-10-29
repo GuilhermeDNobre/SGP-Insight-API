@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UsersService } from "src/users/users.service";
 import { LoginInfoDto } from "./dto/auth.dto";
-import { RegisterDto } from "./dto/register.dto";
+import { CreateUserDto } from "src/users/dto/create-user-dto";
 
 @Injectable()
 export class AuthService {
@@ -14,14 +14,16 @@ export class AuthService {
   
   async validateUser({ email, password }: LoginInfoDto) {
     const user = await this.usersService.validateUserExistence(email, password);
-    if (!user) return null;
-    if (user.disabled) return null;
-    if (user.deleted) return null;
-    const { disabled, deleted, created_at, updated_at, firstName, ...result } = user;
-    return this.jwtService.sign(result);
+      if (!user || user.disabled || user.deleted) return null;
+        const payload = {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+      };
+    return this.jwtService.sign(payload);
   }
 
-  async registerUser({ email, password, firstName }: RegisterDto) {
+  async registerUser({ email, password, firstName }: CreateUserDto) {
     const user = await this.usersService.createUser({ email, password, firstName });
     if (!user) return null;
     return this.jwtService.sign(user);
