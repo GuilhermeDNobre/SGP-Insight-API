@@ -31,6 +31,7 @@ function Login(): React.JSX.Element {
           value={userData.email}
           onChange={(e) => setUserData((prev) => ({ ...prev, email: e.target.value }))}
           error={errors.email}
+          className='bg-(--white)'
         />
 
         <Input
@@ -41,6 +42,7 @@ function Login(): React.JSX.Element {
             setPasswords((prev) => ({ ...prev, currentPassword: e.target.value }))
           }
           error={errors.currentPassword}
+          className='bg-(--white)'
         />
 
         <Button
