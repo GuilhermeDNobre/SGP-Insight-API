@@ -28,6 +28,7 @@ function Login(): React.JSX.Element {
         <Input
           label="E-mail"
           type="email"
+          labelVariant='white'
           value={userData.email}
           onChange={(e) => setUserData((prev) => ({ ...prev, email: e.target.value }))}
           error={errors.email}
@@ -37,6 +38,7 @@ function Login(): React.JSX.Element {
         <Input
           label="Senha:"
           type="password"
+          labelVariant='white'
           value={passwords.currentPassword}
           onChange={(e) =>
             setPasswords((prev) => ({ ...prev, currentPassword: e.target.value }))
@@ -63,7 +65,7 @@ function Login(): React.JSX.Element {
         />
 
         <div className='text-[12px] text-white'>
-          Ainda não é cadastrado? Cadastre-se 
+          Ainda não é cadastrado? Cadastre-se{" "}
           <a href='' className='text-[var(--ter)]' onClick={() => {
             //navigate("/Register")
           }}> 

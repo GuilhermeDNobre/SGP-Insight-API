@@ -4,21 +4,28 @@ import React, { useState } from 'react'
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string
   error?: string
+  labelVariant: 'default' | 'white'
 }
 
 export default function Input({
   label,
   type = 'text',
   error,
+  labelVariant,
   className = '',
   ...props
 }: InputProps): React.JSX.Element {
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
 
+  const variants: Record<string, string> = {
+    default: 'text-sm font-medium text-[var(--black)]',
+    white: 'text-sm font-medium text-[var(--white)]',
+  }
+
   return (
     <div className="flex flex-col w-full gap-1">
-      <label className="text-sm font-medium text---black)">{label}</label>
+      <label className={`${variants[labelVariant]}`}>{label}</label>
 
       <div className="relative">
         <input
