@@ -2,7 +2,7 @@ import { Eye, EyeOff, Search } from 'lucide-react'
 import React, { useState } from 'react'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label: string
+  label?: string
   error?: string
   labelVariant: 'default' | 'white'
 }
@@ -26,7 +26,9 @@ export default function Input({
 
   return (
     <div className="flex flex-col w-full gap-1">
-      <label className={`${variants[labelVariant]}`}>{label}</label>
+      { label !== undefined &&
+       <label className={`${variants[labelVariant]}`}>{label}</label>
+      }
 
       <div className="relative">
         <input
@@ -50,9 +52,13 @@ export default function Input({
         )}
 
         {isSearch && (
-          <div className="absolute inset-y-0 right-3 flex items-center text-(--gray)">
+          <button
+            type="submit"
+            onClick={() => {}} 
+            className="absolute inset-y-0 right-3 flex items-center text-(--gray)"
+          >
             <Search size={16} />
-          </div>
+          </button>
         )}
       </div>
 
