@@ -1,4 +1,4 @@
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Search } from 'lucide-react'
 import React, { useState } from 'react'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -17,6 +17,7 @@ export default function Input({
 }: InputProps): React.JSX.Element {
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
+  const isSearch = type === 'search'
 
   const variants: Record<string, string> = {
     default: 'text-sm font-medium text-[var(--black)]',
@@ -30,6 +31,7 @@ export default function Input({
       <div className="relative">
         <input
           {...props}
+
           type={isPassword && showPassword ? 'text' : type}
           className={`w-full rounded-md border border-(--light-gray) bg---white)
             px-3 py-2 text-sm text-(--black) placeholder:text-(--gray)
@@ -45,6 +47,12 @@ export default function Input({
           >
             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
+        )}
+
+        {isSearch && (
+          <div className="absolute inset-y-0 right-3 flex items-center text-(--gray)">
+            <Search size={16} />
+          </div>
         )}
       </div>
 

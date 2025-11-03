@@ -3,6 +3,7 @@ import DeleteProfile from '@pages/DeleteProfile'
 import EditProfile from '@pages/EditProfile'
 import Home from '@pages/Home'
 import Login from '@pages/Login'
+import Register from '@pages/Register'
 import Maintenance from '@pages/Maintenance'
 import Profile from '@pages/Profile'
 import Tools from '@pages/Tools'
@@ -13,6 +14,7 @@ export default function AppRoutes(): React.JSX.Element {
     <Routes>
       {/* Login e rota padrão */}
       <Route path="/" element={<Login />} />
+      <Route path="/Register" element={<Register />} />
       <Route path="/Home" element={<Home />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/profile-edit" element={<EditProfile />} />

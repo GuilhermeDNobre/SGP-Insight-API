@@ -23,11 +23,12 @@ function Login(): React.JSX.Element {
       </div>
 
       <div className="w-80 pl-5 pr-5 pb-4 pt-4 bg-[var(--pri)] flex-col flex justify-center items-center rounded-[0.625rem] gap-2.5">
-        <div className=" text-white font-medium text-2xl">Seja bem-vindo!</div>
+        <div className=" text-white font-medium text-2xl">Seja bem-vindo (a)!</div>
         
         <Input
           label="E-mail"
           type="email"
+          placeholder='johndoe@email.com'
           labelVariant='white'
           value={userData.email}
           onChange={(e) => setUserData((prev) => ({ ...prev, email: e.target.value }))}
@@ -38,6 +39,7 @@ function Login(): React.JSX.Element {
         <Input
           label="Senha:"
           type="password"
+          placeholder='Insira sua senha'
           labelVariant='white'
           value={passwords.currentPassword}
           onChange={(e) =>
@@ -67,7 +69,7 @@ function Login(): React.JSX.Element {
         <div className='text-[12px] text-white'>
           Ainda não é cadastrado? Cadastre-se{" "}
           <a href='' className='text-[var(--ter)]' onClick={() => {
-            //navigate("/Register")
+            navigate("/Register")
           }}> 
             aqui. 
           </a>

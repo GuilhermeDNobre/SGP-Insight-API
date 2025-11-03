@@ -25,7 +25,7 @@ function Button({
 }: ButtonProps): React.JSX.Element {
   const base = 'h-[30px] pl-3.5 pr-3.5 pt-2 pb-2 text-[14px] inline-flex items-center justify-center font-medium rounded transition focus:outline-none cursor-pointer'
   const variants: Record<string, string> = {
-    primary: 'bg-[var(--sec)] text-white hover:opacity-90' // Adicionar variantes futuramente
+    primary: 'bg-[var(--sec)] text-white hover:opacity-90', // Adicionar variantes futuramente
   }
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>):void => {
