@@ -6,8 +6,11 @@ import { EquipmentCard } from '@renderer/components/EquipmentCard';
 import { EquipmentData } from '@renderer/types/equipment';
 import { MOCKED_EQUIPMENT_LIST } from '@renderer/mocks/equipment.mock';
 import { ListFilter, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Tools(): React.JSX.Element {
+  const navigate = useNavigate()
+  
   // Lógica de estado e filtro
   const [equipmentList, setEquipmentList] = useState<EquipmentData[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -54,7 +57,7 @@ export default function Tools(): React.JSX.Element {
               endIcon={<Plus size={16} />}
               className="h-[30px] w-[196px] whitespace-nowrap"
               onClick={() => {
-                // Navegar para a página de adicionar equipamento
+                navigate('/addTool')  
               }}
             />
             <Button
