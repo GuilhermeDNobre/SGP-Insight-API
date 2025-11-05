@@ -2,8 +2,11 @@ import Sidebar from '@renderer/components/Sidebar'
 import React from 'react'
 import ProfileAvatar from '@assets/icons/logo.svg'
 import { FaPencilAlt } from 'react-icons/fa'
+import { useNavigate } from 'react-router-dom'
 
 function Profile(): React.JSX.Element {
+  const navigate = useNavigate()
+
   return (
     <div className="flex w-screen h-screen bg-white">
       <Sidebar />
@@ -23,6 +26,7 @@ function Profile(): React.JSX.Element {
                 <FaPencilAlt
                   className="text-gray-400 hover:text-gray-500 cursor-pointer"
                   size={14}
+                  onClick={() => navigate('/profile-edit')}
                 />
                 </div>
                 <p className="text-gray-500 mt-1 mb-8">

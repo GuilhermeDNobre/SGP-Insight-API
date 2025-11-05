@@ -95,6 +95,7 @@ export default function EditProfile(): React.JSX.Element {
             <Input
               label="Nome Completo"
               value={userData.fullName}
+              labelVariant='default'
               onChange={(e) => setUserData((prev) => ({ ...prev, fullName: e.target.value }))}
               error={errors.fullName}
             />
@@ -102,18 +103,25 @@ export default function EditProfile(): React.JSX.Element {
             <Input
               label="E-mail"
               type="email"
+              labelVariant='default'
               value={userData.email}
               onChange={(e) => setUserData((prev) => ({ ...prev, email: e.target.value }))}
               error={errors.email}
             />
 
-            <Input label="CNPJ" value={userData.cnpj} disabled className="bg-(--gray-light)/10" />
+            <Input 
+              label="CNPJ"
+              value={userData.cnpj}
+              labelVariant='default'
+              disabled className="bg-(--gray-light)/10" 
+            />
 
             <div className="border-t border-(--gray-light) my-6"></div>
 
             <Input
               label="Senha Atual"
               type="password"
+              labelVariant='default'
               value={passwords.currentPassword}
               onChange={(e) =>
                 setPasswords((prev) => ({ ...prev, currentPassword: e.target.value }))
@@ -124,6 +132,7 @@ export default function EditProfile(): React.JSX.Element {
             <Input
               label="Nova Senha"
               type="password"
+              labelVariant='default'
               value={passwords.newPassword}
               onChange={(e) => setPasswords((prev) => ({ ...prev, newPassword: e.target.value }))}
               error={errors.newPassword}
