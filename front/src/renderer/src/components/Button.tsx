@@ -2,7 +2,8 @@ import React from 'react'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label?: React.ReactNode
-  variant?: 'primary' | 'danger'
+  variant?: 'primary' | 'secondary' | 'tertiary'
+  endIcon?: React.ReactNode
   /**
    * Função que deve retornar os dados atuais dos inputs da página.
    * Será chamada no clique antes de `onAction`.
@@ -17,16 +18,17 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 function Button({
   label,
   variant = 'primary',
+  endIcon,
   collect,
   onAction,
   className = '',
   type,
   ...rest
 }: ButtonProps): React.JSX.Element {
-  const base = 'h-[30px] pl-3.5 pr-3.5 pt-2 pb-2 text-[14px] inline-flex items-center justify-center font-medium rounded transition focus:outline-none cursor-pointer'
+  const base = 'h-[30px] pl-3.5 pr-3.5 pt-2 pb-2 text-[14px] gap-2 inline-flex items-center justify-center font-medium rounded transition focus:outline-none cursor-pointer'
   const variants: Record<string, string> = {
-    primary: 'bg-[var(--sec)] text-white hover:opacity-90',
-    danger: 'bg-[var(--erro)] text-white hover:bg-[var(--pri)]/80' // Adicionar variantes futuramente
+    primary: 'bg-[var(--sec)] text-white hover:opacity-90', // Adicionar variantes futuramente
+    secondary: 'bg-[var(--white)] text-[var(--sec)] border border-[var(--sec)] hover:bg-[var(--sec)] hover:text-white',
   }
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>):void => {
@@ -42,7 +44,8 @@ function Button({
       onClick={handleClick}
       {...rest}
     >
-      {label}
+      {label && <span>{label}</span>}
+      {endIcon && <span>{endIcon}</span>}
     </button>
   )
 }
