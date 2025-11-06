@@ -47,6 +47,7 @@ export default function DeleteProfile(): React.JSX.Element {
             <div className="flex-1">
             <Input
               label="Insira sua senha:"
+              labelVariant="default"
               type="password"
               placeholder="Senha atual"
               value={password}
