@@ -32,3 +32,12 @@ model User {
 
   @@map ("users")
 }
+
+model Department {
+  id               String   @id @default(uuid())
+  name             String   @unique
+  location         String
+  responsableName  String
+  responsableEmail String
+}
+

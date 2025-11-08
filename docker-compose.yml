@@ -1,7 +1,7 @@
 
 services:
   postgres:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: sgp-db
     restart: always
     env_file:
