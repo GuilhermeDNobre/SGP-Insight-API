@@ -4,12 +4,11 @@ import { LoginInfoDto } from "./dto/auth.dto";
 import type { Request } from "express";
 import { LocalGuard } from "./guards/local.guard";
 import { JwtAuthGuard } from "./guards/jwt.guard";
-import { RegisterDto } from "./dto/register.dto";
 import { RolesGuard } from "./guards/roles.guard";
 import { Role } from "@prisma/client";
 import { Roles } from "./decorator/roles.decorator";
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from "@nestjs/swagger";
-
+import { CreateUserDto } from "src/users/dto/create-user-dto";
+import { ApiBody, ApiOperation, ApiResponse } from "@nestjs/swagger";
 
 @Controller("auth")
 export class AuthController {
@@ -22,16 +21,28 @@ export class AuthController {
   @Post("login")
   @UseGuards(LocalGuard)
   @HttpCode(200)
+  login(@Req() req: Request) { 
+    return req.user
+  }
+
+  @ApiOperation({summary: 'Used to get user status'})
+  @ApiResponse({ status: 200, description: 'Usuário encontrado' })
+  @ApiResponse({ status: 401, description: 'Usuário não autorizado' })
   @Get("status")
   @UseGuards(JwtAuthGuard)
   status(@Req() req: Request) {
     return req.user;
   }
 
+  @ApiOperation({summary: 'Used by an ADMIN to register an user'})
+  @ApiBody({type: CreateUserDto})
+  @ApiResponse({ status: 201, description: 'Usuário registrado com sucesso' })
+  @ApiResponse({ status: 400, description: 'Requisição inválida' })
+  @ApiResponse({ status: 401, description: 'Usuário não autorizado' })
   @Post("register")
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  async register(@Body() body: RegisterDto) {
+  async register(@Body() body: CreateUserDto) {
     const user = await this.AuthService.registerUser(body);
     if(!user) throw new HttpException('User already exists', 400);
     return user;
