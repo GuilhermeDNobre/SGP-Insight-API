@@ -1,6 +1,6 @@
 import { AuthService } from "./auth.service";
 import { Body, Controller, Get, HttpCode, HttpException, Post, Req, UseGuards } from "@nestjs/common";
-import { LoginInfoDto } from "./dto/auth.dto";
+import { LoginInfoDto } from "./dto/login-dto";
 import type { Request } from "express";
 import { LocalGuard } from "./guards/local.guard";
 import { JwtAuthGuard } from "./guards/jwt.guard";
@@ -8,7 +8,7 @@ import { RolesGuard } from "./guards/roles.guard";
 import { Role } from "@prisma/client";
 import { Roles } from "./decorator/roles.decorator";
 import { CreateUserDto } from "src/users/dto/create-user-dto";
-import { ApiBody, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from "@nestjs/swagger";
 
 @Controller("auth")
 export class AuthController {
@@ -26,6 +26,7 @@ export class AuthController {
   }
 
   @ApiOperation({summary: 'Used to get user status'})
+  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'Usuário encontrado' })
   @ApiResponse({ status: 401, description: 'Usuário não autorizado' })
   @Get("status")
