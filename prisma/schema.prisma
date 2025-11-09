@@ -1,43 +1,36 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"   
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid()) @db.Uuid
+  role       Role     @default(MANAGER)
+  email      String   @unique
+  password   String
+  firstName  String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  disabled   Boolean  @default(false)
+  deleted    Boolean  @default(false)
+
+  @@map("users")
+}
+
+model Department {
+  id               String @id @default(uuid())
+  name             String @unique
+  location         String
+  responsableName  String
+  responsableEmail String
 }
 
 enum Role {
   MANAGER
   ADMIN
 }
-
-model User {
-  id String @id @db.Uuid @default(uuid()) 
-  role Role @default(MANAGER) 
-  email String @unique
-  password String
-  firstName String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  disabled Boolean @default(false)
-  deleted Boolean @default(false)
-
-  @@map ("users")
-}
-
-model Department {
-  id               String   @id @default(uuid())
-  name             String   @unique
-  location         String
-  responsableName  String
-  responsableEmail String
-}
-

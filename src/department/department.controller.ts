@@ -28,8 +28,8 @@ export class DepartmentController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth()
-  @ApiBody({type: UpdateDepartmentDto})
-  @ApiOperation({summary: 'Used by an ADMIN to update (edit) an department'})
+  @ApiBody({type: CreateDepartmentDto})
+  @ApiOperation({summary: 'Used by an ADMIN to update (edit) an department (All JSON camps are optional)'})
   async update(@Param('id') id: string, @Body() dto: UpdateDepartmentDto){
     return await this.departmentService.update(id, dto)
   }
