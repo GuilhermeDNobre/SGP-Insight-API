@@ -10,7 +10,7 @@ export default tseslint.config(
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
-  eslintPluginPrettierRecommended,
+  // eslintPluginPrettierRecommended,
   {
     languageOptions: {
       globals: {
@@ -30,6 +30,8 @@ export default tseslint.config(
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
       "prettier/prettier": ["error", { endOfLine: "auto" }],
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "error"
     },
   },
 );
