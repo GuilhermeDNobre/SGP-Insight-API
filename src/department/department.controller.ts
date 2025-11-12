@@ -26,21 +26,24 @@ export class DepartmentController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
   @ApiBearerAuth()
-  @ApiBody({type: CreateDepartmentDto})
-  @ApiOperation({summary: 'Used by an ADMIN to update (edit) an department (All JSON camps are optional)'})
+  @ApiBody({type: UpdateDepartmentDto})
+  @ApiOperation({summary: 'Edit an department (All JSON camps are optional)'})
   async update(@Param('id') id: string, @Body() dto: UpdateDepartmentDto){
     return await this.departmentService.update(id, dto)
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'List all departments' })
   findAll() {
     return this.departmentService.findAll();
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get a department by its ID' })
   findOne(@Param('id') id: string) {
     return this.departmentService.findOne(id);
@@ -53,6 +56,8 @@ export class DepartmentController {
   }
 
   @Get('id-by-name/:name')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get a department ID using its name' })
   async findIdByName(@Param('name') name: string) {
     return this.departmentService.findIdByName(name);

@@ -38,6 +38,12 @@ export class DepartmentService {
 }
 
 async update(id: string, dto: UpdateDepartmentDto) {
+
+  const existing = await this.prisma.department.findUnique({ where: { id } });
+
+  if (!existing) {
+    throw new HttpException('Department not found', HttpStatus.NOT_FOUND);
+  }
   
   const updateData: Partial<UpdateDepartmentDto> = {};
   if (dto.name) updateData.name = normalizeString(dto.name);
@@ -53,7 +59,7 @@ async update(id: string, dto: UpdateDepartmentDto) {
 
 
   async findAll() {
-  return await this.prisma.department.findMany();
+    return await this.prisma.department.findMany();
   }
 
   async findOne(id: string) {

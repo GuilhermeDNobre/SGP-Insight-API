@@ -28,6 +28,35 @@ model Department {
   location         String
   responsableName  String
   responsableEmail String
+
+  equipments Equipment[]
+  previousMoves  EquipmentMove[]   @relation("PreviousDepartment")
+  newMoves       EquipmentMove[]   @relation("NewDepartment")
+}
+
+model Equipment {
+  id           String     @id @default(uuid())
+  name         String
+  ean          String     @unique
+  disabled     Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  disabledAt   DateTime?
+  alocatedAtId String
+  alocatedAt   Department @relation(fields: [alocatedAtId], references: [id])
+
+  moves EquipmentMove[]
+}
+
+model EquipmentMove {
+  id                         String     @id @default(uuid())
+  equipmentId                String
+  previouslyAlocatedAtId     String
+  newlyAlocatedAtId          String
+  createdAt                  DateTime   @default(now())
+
+  equipment                  Equipment  @relation(fields: [equipmentId], references: [id])
+  previouslyAlocatedAt       Department @relation("PreviousDepartment", fields: [previouslyAlocatedAtId], references: [id])
+  newlyAlocatedAt            Department @relation("NewDepartment", fields: [newlyAlocatedAtId], references: [id])
 }
 
 enum Role {

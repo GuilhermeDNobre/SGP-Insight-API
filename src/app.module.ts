@@ -4,6 +4,8 @@ import { UsersModule } from "./users/users.module";
 import { AuthModule } from "./auth/auth.module";
 import { PrismaModule } from "./prisma/prisma.module";
 import { DepartmentModule } from './department/department.module';
+import { EquipmentModule } from './equipment/equipment.module';
+import { EquipmentMoveModule } from './equipment-move/equipment-move.module';
 
 @Module({
   imports: [
@@ -11,7 +13,9 @@ import { DepartmentModule } from './department/department.module';
     UsersModule,
     PrismaModule,
     AuthModule,
-    DepartmentModule
+    DepartmentModule,
+    EquipmentModule,
+    EquipmentMoveModule
   ],
   controllers: [],
   providers: [],
