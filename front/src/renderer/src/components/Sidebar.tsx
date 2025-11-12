@@ -19,9 +19,9 @@ export default function Sidebar(): React.JSX.Element {
   return (
     <>
       {/* Botão de abrir menu */}
-      <button className="fixed top-2 left-2 p-2 rounded-md transition transform hover:scale-95 z-30">
+      <div className="fixed top-2 left-2 p-2 rounded-md transition transform hover:scale-95 z-30">
         <SidebarItem icon={<Menu size={20} />} label="Menu" onClick={() => setIsOpen(true)} />
-      </button>
+      </div>
 
       {/* Overlay escurecido */}
       {isOpen && (
