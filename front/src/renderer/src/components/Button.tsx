@@ -2,7 +2,7 @@ import React from 'react'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label?: React.ReactNode
-  variant?: 'primary' | 'secondary' | 'tertiary' | 'danger'
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'danger' | 'success'
   endIcon?: React.ReactNode
   /**
    * Função que deve retornar os dados atuais dos inputs da página.
@@ -30,6 +30,7 @@ function Button({
     primary: 'bg-[var(--sec)] text-white hover:opacity-90', // Adicionar variantes futuramente
     secondary: 'bg-[var(--white)] text-[var(--sec)] border border-[var(--sec)] hover:bg-[var(--sec)] hover:text-white',
     danger: 'bg-[var(--erro)] text-white hover:bg-[var(--pri)]/80',
+    success: 'bg-[var(--sucess)] text-white hover:bg-[var(--sucess)]/80',
   }
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>):void => {
