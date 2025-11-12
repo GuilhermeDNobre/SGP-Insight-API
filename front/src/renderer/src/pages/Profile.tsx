@@ -10,13 +10,9 @@ function Profile(): React.JSX.Element {
   const { userData, isLoading, loadUserData } = useProfile()
 
   useEffect(() => {
-    console.log('[Profile Page] Montando componente')
     loadUserData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  useEffect(() => {
-    console.log('[Profile Page] userData mudou:', userData)
-  }, [userData])
 
   if (isLoading) {
     return (
@@ -33,7 +29,7 @@ function Profile(): React.JSX.Element {
     <div className="flex w-screen h-screen bg-white">
       <Sidebar />
 
-      <main className="flex-grow flex justify-center items-center p-8 overflow-y-auto">
+      <main className="flex-grow flex flex-col justify-center items-center p-8 overflow-y-auto gap-5">
         <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-lg text-gray-800">
           <div className="flex flex-col items-center">
             <img
@@ -68,31 +64,29 @@ function Profile(): React.JSX.Element {
                 <span className="text-base text-gray-800 truncate">{userData?.id}</span>
               </div>
             </div>
-
-            <div className="mb-8">
-              <h3 className="text-lg font-bold text-black">Ações</h3>
-              <div className="flex gap-4 mt-4">
-                <button
-                  onClick={() => {
-                    console.log('[Profile] Clicou em Editar Perfil')
-                    navigate('/profile-edit')
-                  }}
-                  className="px-4 py-2 bg-(--ter) text-white rounded-md hover:bg-(--ter)/50 transition"
-                >
-                  Editar Perfil
-                </button>
-                <button
-                  onClick={() => {
-                    console.log('[Profile] Clicou em Excluir Perfil')
-                    navigate('/profile-delete')
-                  }}
-                  className="px-4 py-2 bg-(--erro) text-white rounded-md hover:bg-red-400 transition"
-                >
-                  Excluir Perfil
-                </button>
-              </div>
-            </div>
           </div>
+        </div>
+
+        {/* Botões fora do card */}
+        <div className="flex gap-4 mt-6 w-full max-w-lg">
+          <button
+            onClick={() => {
+              console.log('[Profile] Clicou em Editar Perfil')
+              navigate('/profile-edit')
+            }}
+            className="flex-1 px-4 py-2 bg-(--ter) text-white rounded-md hover:bg-blue-300 transition"
+          >
+            Editar Perfil
+          </button>
+          <button
+            onClick={() => {
+              console.log('[Profile] Clicou em Excluir Perfil')
+              navigate('/profile-delete')
+            }}
+            className="flex-1 px-4 py-2 bg-(--erro) text-white rounded-md hover:bg-red-400 transition"
+          >
+            Excluir Perfil
+          </button>
         </div>
       </main>
     </div>

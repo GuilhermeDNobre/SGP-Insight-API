@@ -1,6 +1,5 @@
 import Sidebar from '@components/Sidebar'
 import { useProfile } from '@hooks/useProfile'
-import Button from '@renderer/components/Button'
 import Input from '@renderer/components/Input'
 import { X } from 'lucide-react'
 import React, { useState } from 'react'
@@ -60,13 +59,21 @@ export default function DeleteProfile(): React.JSX.Element {
                 />
               </div>
 
-              <div className="flex justify-end mt-6">
-                <Button
-                  label="Excluir Perfil"
+              <div className="flex gap-4 mt-6">
+                <button
+                  type="button"
+                  onClick={() => navigate('/profile')}
+                  className="flex-1 px-6 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
                   type="submit"
-                  variant="primary"
                   disabled={isLoading}
-                />
+                  className="flex-1 px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors cursor-pointer"
+                >
+                  {isLoading ? 'Excluindo...' : 'Excluir Perfil'}
+                </button>
               </div>
             </form>
           </div>
@@ -88,14 +95,14 @@ export default function DeleteProfile(): React.JSX.Element {
 
             <p className="mt-4 text-base text-gray-600">
               Tem certeza de que deseja excluir seu perfil?
-              <span className="font-bold text-(--erro)"> Esta ação é irreversível.</span>
+              <span className="font-bold text-red-600"> Esta ação é irreversível.</span>
             </p>
 
             <div className="mt-6 flex justify-end gap-4">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 transition"
+                className="px-6 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
