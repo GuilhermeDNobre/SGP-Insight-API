@@ -1,13 +1,13 @@
+import AddTool from '@pages/AddTool'
 import Alerts from '@pages/Alerts'
 import DeleteProfile from '@pages/DeleteProfile'
 import EditProfile from '@pages/EditProfile'
 import Home from '@pages/Home'
 import Login from '@pages/Login'
-import Register from '@pages/Register'
 import Maintenance from '@pages/Maintenance'
 import Profile from '@pages/Profile'
+import Register from '@pages/Register'
 import Tools from '@pages/Tools'
-import AddTool from '@pages/AddTool'
 import { Route, Routes } from 'react-router-dom'
 
 export default function AppRoutes(): React.JSX.Element {
