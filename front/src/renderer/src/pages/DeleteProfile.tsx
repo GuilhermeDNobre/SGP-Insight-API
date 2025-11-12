@@ -1,22 +1,28 @@
-import ProfileSide from '@components/ProfileSide'
 import Sidebar from '@components/Sidebar'
-import React, { useState } from 'react'
-import Input from '@renderer/components/Input'
+import { useProfile } from '@hooks/useProfile'
 import Button from '@renderer/components/Button'
-import { useNavigate } from 'react-router-dom'
+import Input from '@renderer/components/Input'
 import { X } from 'lucide-react'
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 export default function DeleteProfile(): React.JSX.Element {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const navigate = useNavigate()
+  const { deleteProfile, isLoading } = useProfile()
 
-  const handleConfirmDelete = (): void => {
-    console.log('Excluindo com senha:', password)
-    setIsModalOpen(false)
-    alert('Perfil excluído com sucesso!')
-    navigate('/login')
+  const handleConfirmDelete = async (): Promise<void> => {
+    try {
+      await deleteProfile()
+      setIsModalOpen(false)
+      alert('Perfil excluído com sucesso!')
+      navigate('/login')
+    } catch (err) {
+      console.error('Erro ao excluir:', err)
+      alert(err instanceof Error ? err.message : 'Erro ao excluir perfil')
+    }
   }
 
   const handleSubmit = (e: React.FormEvent): void => {
@@ -31,85 +37,81 @@ export default function DeleteProfile(): React.JSX.Element {
 
   return (
     <>
-    <div className="flex h-screen bg-white">
-      <Sidebar />
+      <div className="flex h-screen bg-white">
+        <Sidebar />
 
-      <main className="flex-1 flex pt-28 pb-10 px-4 gap-10">
-        <ProfileSide />
+        <main className="flex-1 flex pt-28 pb-10 px-4 gap-10">
+          <div className="w-full max-w-lg">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-8">Excluir Perfil de Usuário</h2>
 
-        <div className="w-full max-w-lg">
-          <h2 className="text-2xl font-semibold text-[var(--txt-var)] mb-8">
-            Excluir Perfil de Usuário
-          </h2>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+              <div className="flex-1">
+                <Input
+                  label="Insira sua senha"
+                  type="password"
+                  placeholder="Senha atual"
+                  labelVariant="default"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (error) setError('')
+                  }}
+                  error={error}
+                />
+              </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-
-            <div className="flex-1">
-            <Input
-              label="Insira sua senha:"
-              type="password"
-              placeholder="Senha atual"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value)
-                if (error) setError('')
-              }}
-            />
-            </div>
-
-            <div className="flex justify-end mt-6">
-              <Button
-              label="Excluir Perfil"
-              type="submit"
-              variant="danger"
-            />
-            </div>
-        </form>
+              <div className="flex justify-end mt-6">
+                <Button
+                  label="Excluir Perfil"
+                  type="submit"
+                  variant="primary"
+                  disabled={isLoading}
+                />
+              </div>
+            </form>
+          </div>
+        </main>
       </div>
-    </main>
-  </div>
 
-  {isModalOpen && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
-
-        <button
-          type="button"
-          onClick={ () => setIsModalOpen(false)}
-          className="absolute top-4 right-4 text-[var(--txt2-var)] hover:text-[var(--txt-var)] transition">
-          <X size={24} />
-        </button>
-
-        <h3 className="text-xl font-medium text-[var(--text-var)]">
-        Excluir Perfil de Usuário?
-        </h3>
-
-        <p className="mt-4 text-base text-gray-600">
-          Tem certeza de que deseja excluir seu perfil?
-          <span className="font-bold text-[var(--txt-var)]">
-          {' '}
-          Esta ação é irreversível.
-        </span>
-      </p>
-
-        <div className="mt-6 flex justify-end gap-4 mt-8">
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(false)}
-            className="px-4 py-2 rounded-md border border-gray-300 bg-white text-[var(--txt-var)] hover:bg-gray-50 transition">
-            Cancelar
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition"
+            >
+              <X size={24} />
             </button>
 
-          <Button
-            label="Sim, Excluir Perfil"
-            variant="danger"
-            onClick={handleConfirmDelete}
-          />
+            <h3 className="text-xl font-medium text-gray-800">Excluir Perfil de Usuário?</h3>
+
+            <p className="mt-4 text-base text-gray-600">
+              Tem certeza de que deseja excluir seu perfil?
+              <span className="font-bold text-(--erro)"> Esta ação é irreversível.</span>
+            </p>
+
+            <div className="mt-6 flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isLoading}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 transition"
+              >
+                {isLoading ? 'Excluindo...' : 'Sim, Excluir Perfil'}
+              </button>
+            </div>
+          </div>
         </div>
-        </div>
-      </div>
-    )}
-</>
+      )}
+    </>
   )
 }
