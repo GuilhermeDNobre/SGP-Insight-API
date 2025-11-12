@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import api from '../services/api'
 import { useAuth } from './useAuth'
 
@@ -47,10 +46,9 @@ export function useProfile(): UseProfileReturn {
   const [isLoading, setIsLoading] = useState(false)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const { getToken, logout } = useAuth()
-  const location = useLocation()
 
   // Carregar dados do usuário na montagem do componente
-  const loadUserData = useCallback(async (): Promise<void> => {
+  const loadUserData = async (): Promise<void> => {
     try {
       setIsLoading(true)
       const token = getToken()
@@ -83,15 +81,13 @@ export function useProfile(): UseProfileReturn {
     } finally {
       setIsLoading(false)
     }
-  }, [getToken])
+  }
 
-  // Carregar dados ao montar o componente e quando voltar para /profile
+  // Carregar dados ao montar o componente
   useEffect(() => {
-    if (location.pathname === '/profile') {
-      console.log('[Profile] Voltando para /profile, recarregando dados...')
-      loadUserData()
-    }
-  }, [location.pathname, loadUserData])
+    void loadUserData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
@@ -118,7 +114,7 @@ export function useProfile(): UseProfileReturn {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleImagePreview = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImagePreview = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0]
     if (file) {
       const reader = new FileReader()
@@ -127,9 +123,9 @@ export function useProfile(): UseProfileReturn {
       }
       reader.readAsDataURL(file)
     }
-  }, [])
+  }
 
-  const updateProfile = async (profilePicture?: File): Promise<void> => {
+  const updateProfile = async (): Promise<void> => {
     if (!validateForm() || !userData) {
       throw new Error('Formulário inválido')
     }
