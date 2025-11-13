@@ -18,7 +18,7 @@ function Profile(): React.JSX.Element {
     return (
       <div className="flex w-screen h-screen bg-white">
         <Sidebar />
-        <main className="flex-grow flex justify-center items-center">
+        <main className="grow flex justify-center items-center">
           <p className="text-gray-500">Carregando...</p>
         </main>
       </div>
@@ -29,7 +29,7 @@ function Profile(): React.JSX.Element {
     <div className="flex w-screen h-screen bg-white">
       <Sidebar />
 
-      <main className="flex-grow flex flex-col justify-center items-center p-8 overflow-y-auto gap-5">
+      <main className="grow flex flex-col justify-center items-center p-8 overflow-y-auto gap-5">
         <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-lg text-gray-800">
           <div className="flex flex-col items-center">
             <img
