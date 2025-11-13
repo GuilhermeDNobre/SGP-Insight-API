@@ -33,6 +33,7 @@ function CreateEquipment(): React.JSX.Element {
     try {
       await createEquipment(formData)
       alert('Equipamento criado com sucesso!')
+      // Navigate will trigger Equipment page to load fresh data
       navigate('/equipments')
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Erro ao criar equipamento')

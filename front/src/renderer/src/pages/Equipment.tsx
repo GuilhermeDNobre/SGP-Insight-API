@@ -2,16 +2,16 @@ import { useEquipment } from '@hooks/useEquipment'
 import Sidebar from '@renderer/components/Sidebar'
 import { Edit, Plus, Trash2 } from 'lucide-react'
 import React, { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 function Equipment(): React.JSX.Element {
   const navigate = useNavigate()
+  const location = useLocation()
   const { equipments, isLoading, loadEquipments, deleteEquipment } = useEquipment()
 
   useEffect(() => {
     void loadEquipments()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [location.pathname, loadEquipments])
 
   const handleDelete = async (id: string, name: string): Promise<void> => {
     if (window.confirm(`Tem certeza que deseja deletar o equipamento "${name}"?`)) {

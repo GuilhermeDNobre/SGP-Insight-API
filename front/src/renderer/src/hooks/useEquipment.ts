@@ -53,7 +53,9 @@ export function useEquipment(): UseEquipmentReturn {
     try {
       setIsLoading(true)
       const response = await api.get('/equipment')
-      const data = Array.isArray(response.data) ? response.data : []
+      // API returns paginated response: { data: [...], meta: {...} }
+      const data =
+        response.data?.data && Array.isArray(response.data.data) ? response.data.data : []
       setEquipments(data)
     } catch (error) {
       console.error('[useEquipment] Erro ao carregar equipamentos:', error)
