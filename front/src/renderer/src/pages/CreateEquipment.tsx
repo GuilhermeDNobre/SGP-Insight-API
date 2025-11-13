@@ -12,7 +12,8 @@ function CreateEquipment(): React.JSX.Element {
   const [formData, setFormData] = useState({
     name: '',
     ean: '',
-    alocatedAtId: ''
+    alocatedAtId: '',
+    disabled: false
   })
 
   useEffect(() => {
@@ -21,17 +22,19 @@ function CreateEquipment(): React.JSX.Element {
   }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
-    const { name, value } = e.target
+    const { name, value, type } = e.target
+    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: val
     }))
   }
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     try {
-      await createEquipment(formData)
+      const { disabled, ...equipmentData } = formData
+      await createEquipment(equipmentData)
       alert('Equipamento criado com sucesso!')
       // Navigate will trigger Equipment page to load fresh data
       navigate('/equipments')
@@ -91,6 +94,24 @@ function CreateEquipment(): React.JSX.Element {
               {errors.alocatedAtId && (
                 <span className="text-sm text-red-500">{errors.alocatedAtId}</span>
               )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-gray-700">Status</label>
+              <select
+                name="disabled"
+                value={formData.disabled ? 'desativado' : 'ativo'}
+                onChange={(e) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    disabled: e.target.value === 'desativado'
+                  }))
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="ativo">Ativo</option>
+                <option value="desativado">Desativado</option>
+              </select>
             </div>
 
             <div className="flex gap-4 mt-6">

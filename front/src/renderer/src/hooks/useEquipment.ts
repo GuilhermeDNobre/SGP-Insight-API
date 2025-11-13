@@ -9,6 +9,13 @@ export interface EquipmentData {
   createdAt: string
   disabledAt?: string | null
   alocatedAtId: string
+  alocatedAt?: {
+    id: string
+    name: string
+    location: string
+    responsableName: string
+    responsableEmail: string
+  }
 }
 
 export interface CreateEquipmentInput {

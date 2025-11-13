@@ -127,18 +127,22 @@ function EditEquipment(): React.JSX.Element {
               )}
             </div>
 
-            <div className="flex items-center gap-2 py-2">
-              <input
-                type="checkbox"
-                id="disabled"
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-gray-700">Status</label>
+              <select
                 name="disabled"
-                checked={formData.disabled}
-                onChange={handleChange}
-                className="w-4 h-4 rounded border-gray-300"
-              />
-              <label htmlFor="disabled" className="text-sm font-medium text-gray-700">
-                Desativar equipamento
-              </label>
+                value={formData.disabled ? 'desativado' : 'ativo'}
+                onChange={(e) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    disabled: e.target.value === 'desativado'
+                  }))
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="ativo">Ativo</option>
+                <option value="desativado">Desativado</option>
+              </select>
             </div>
 
             <div className="flex gap-4 mt-6">
