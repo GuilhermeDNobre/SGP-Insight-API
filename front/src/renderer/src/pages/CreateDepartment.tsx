@@ -1,50 +1,18 @@
+import { useDepartment } from '@hooks/useDepartment'
 import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-interface FormErrors {
-  name?: string
-  location?: string
-  responsableName?: string
-  responsableEmail?: string
-}
-
 function CreateDepartment(): React.JSX.Element {
   const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
-  const [errors, setErrors] = useState<FormErrors>({})
+  const { createDepartment, isLoading, errors } = useDepartment()
   const [formData, setFormData] = useState({
     name: '',
     location: '',
     responsableName: '',
     responsableEmail: ''
   })
-
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {}
-
-    if (!formData.name?.trim()) {
-      newErrors.name = 'Nome é obrigatório'
-    }
-
-    if (!formData.location?.trim()) {
-      newErrors.location = 'Localização é obrigatória'
-    }
-
-    if (!formData.responsableName?.trim()) {
-      newErrors.responsableName = 'Nome do responsável é obrigatório'
-    }
-
-    if (!formData.responsableEmail?.trim()) {
-      newErrors.responsableEmail = 'Email do responsável é obrigatório'
-    } else if (!/\S+@\S+\.\S+/.test(formData.responsableEmail)) {
-      newErrors.responsableEmail = 'Email inválido'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target
@@ -56,18 +24,13 @@ function CreateDepartment(): React.JSX.Element {
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
-    if (!validateForm()) return
 
     try {
-      setIsLoading(true)
-      // Mock - aguardar um pouco para simular requisição
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await createDepartment(formData)
       alert('Departamento criado com sucesso!')
       navigate('/departments')
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Erro ao criar departamento')
-    } finally {
-      setIsLoading(false)
     }
   }
 

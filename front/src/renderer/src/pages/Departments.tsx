@@ -1,44 +1,22 @@
 import { useDepartment } from '@hooks/useDepartment'
 import Sidebar from '@renderer/components/Sidebar'
 import { Edit, Plus, Trash2 } from 'lucide-react'
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-
-// Mock data
-const MOCK_DEPARTMENTS = [
-  {
-    id: '1',
-    name: 'TI',
-    location: 'Sala 101',
-    responsableName: 'João Silva',
-    responsableEmail: 'joao@example.com'
-  },
-  {
-    id: '2',
-    name: 'Recursos Humanos',
-    location: 'Sala 201',
-    responsableName: 'Maria Santos',
-    responsableEmail: 'maria@example.com'
-  },
-  {
-    id: '3',
-    name: 'Financeiro',
-    location: 'Sala 301',
-    responsableName: 'Pedro Costa',
-    responsableEmail: 'pedro@example.com'
-  }
-]
+import React, { useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 function Departments(): React.JSX.Element {
   const navigate = useNavigate()
-  const { deleteDepartment, isLoading } = useDepartment()
-  const [departments, setDepartments] = useState(MOCK_DEPARTMENTS)
+  const location = useLocation()
+  const { departments, isLoading, loadDepartments, deleteDepartment } = useDepartment()
+
+  useEffect(() => {
+    void loadDepartments()
+  }, [location.pathname, loadDepartments])
 
   const handleDelete = async (id: string, name: string): Promise<void> => {
     if (window.confirm(`Tem certeza que deseja deletar o departamento "${name}"?`)) {
       try {
         await deleteDepartment(id)
-        setDepartments((prev) => prev.filter((dept) => dept.id !== id))
         alert('Departamento deletado com sucesso!')
       } catch (error) {
         alert(error instanceof Error ? error.message : 'Erro ao deletar departamento')
