@@ -1,13 +1,19 @@
-import { useDepartment } from '@hooks/useDepartment'
 import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
-import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+interface FormErrors {
+  name?: string
+  location?: string
+  responsableName?: string
+  responsableEmail?: string
+}
 
 function EditDepartment(): React.JSX.Element {
   const navigate = useNavigate()
-  const { id } = useParams<{ id: string }>()
-  const { department, isLoading, errors, loadDepartmentById, updateDepartment } = useDepartment()
+  const [isLoading, setIsLoading] = useState(false)
+  const [errors, setErrors] = useState<FormErrors>({})
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -15,23 +21,30 @@ function EditDepartment(): React.JSX.Element {
     responsableEmail: ''
   })
 
-  useEffect(() => {
-    if (id) {
-      void loadDepartmentById(id)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {}
 
-  useEffect(() => {
-    if (department) {
-      setFormData({
-        name: department.name,
-        location: department.location,
-        responsableName: department.responsableName,
-        responsableEmail: department.responsableEmail
-      })
+    if (!formData.name?.trim()) {
+      newErrors.name = 'Nome é obrigatório'
     }
-  }, [department])
+
+    if (!formData.location?.trim()) {
+      newErrors.location = 'Localização é obrigatória'
+    }
+
+    if (!formData.responsableName?.trim()) {
+      newErrors.responsableName = 'Nome do responsável é obrigatório'
+    }
+
+    if (!formData.responsableEmail?.trim()) {
+      newErrors.responsableEmail = 'Email do responsável é obrigatório'
+    } else if (!/\S+@\S+\.\S+/.test(formData.responsableEmail)) {
+      newErrors.responsableEmail = 'Email inválido'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target
@@ -43,26 +56,19 @@ function EditDepartment(): React.JSX.Element {
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
-    if (!id) return
+    if (!validateForm()) return
 
     try {
-      await updateDepartment(id, formData)
+      setIsLoading(true)
+      // Mock - aguardar um pouco para simular requisição
+      await new Promise((resolve) => setTimeout(resolve, 500))
       alert('Departamento atualizado com sucesso!')
       navigate('/departments')
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Erro ao atualizar departamento')
+    } finally {
+      setIsLoading(false)
     }
-  }
-
-  if (isLoading && !department) {
-    return (
-      <div className="flex w-screen h-screen bg-white">
-        <Sidebar />
-        <main className="grow flex justify-center items-center">
-          <p className="text-gray-500">Carregando departamento...</p>
-        </main>
-      </div>
-    )
   }
 
   return (

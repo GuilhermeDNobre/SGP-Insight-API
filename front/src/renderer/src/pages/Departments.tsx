@@ -1,45 +1,44 @@
 import { useDepartment } from '@hooks/useDepartment'
 import Sidebar from '@renderer/components/Sidebar'
 import { Edit, Plus, Trash2 } from 'lucide-react'
-import React, { useEffect } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+// Mock data
+const MOCK_DEPARTMENTS = [
+  {
+    id: '1',
+    name: 'TI',
+    location: 'Sala 101',
+    responsableName: 'João Silva',
+    responsableEmail: 'joao@example.com'
+  },
+  {
+    id: '2',
+    name: 'Recursos Humanos',
+    location: 'Sala 201',
+    responsableName: 'Maria Santos',
+    responsableEmail: 'maria@example.com'
+  },
+  {
+    id: '3',
+    name: 'Financeiro',
+    location: 'Sala 301',
+    responsableName: 'Pedro Costa',
+    responsableEmail: 'pedro@example.com'
+  }
+]
 
 function Departments(): React.JSX.Element {
   const navigate = useNavigate()
-  const { departments, isLoading, deleteDepartment } = useDepartment()
-
-  useEffect(() => {
-    // Mock data - comentar quando tiver API
-    const mockDepartments = [
-      {
-        id: '1',
-        name: 'TI',
-        location: 'Sala 101',
-        responsableName: 'João Silva',
-        responsableEmail: 'joao@example.com'
-      },
-      {
-        id: '2',
-        name: 'Recursos Humanos',
-        location: 'Sala 201',
-        responsableName: 'Maria Santos',
-        responsableEmail: 'maria@example.com'
-      },
-      {
-        id: '3',
-        name: 'Financeiro',
-        location: 'Sala 301',
-        responsableName: 'Pedro Costa',
-        responsableEmail: 'pedro@example.com'
-      }
-    ]
-    // Não chamar loadDepartments() por enquanto, usando mock
-  }, [])
+  const { deleteDepartment, isLoading } = useDepartment()
+  const [departments, setDepartments] = useState(MOCK_DEPARTMENTS)
 
   const handleDelete = async (id: string, name: string): Promise<void> => {
     if (window.confirm(`Tem certeza que deseja deletar o departamento "${name}"?`)) {
       try {
         await deleteDepartment(id)
+        setDepartments((prev) => prev.filter((dept) => dept.id !== id))
         alert('Departamento deletado com sucesso!')
       } catch (error) {
         alert(error instanceof Error ? error.message : 'Erro ao deletar departamento')

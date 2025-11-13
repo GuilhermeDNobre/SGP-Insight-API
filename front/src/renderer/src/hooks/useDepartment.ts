@@ -52,8 +52,9 @@ export function useDepartment(): UseDepartmentReturn {
   const loadDepartments = useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true)
-      const response = await api.get('/departments')
-      setDepartments(response.data)
+      const response = await api.get('/department')
+      const data = Array.isArray(response.data) ? response.data : []
+      setDepartments(data)
     } catch (error) {
       console.error('[useDepartment] Erro ao carregar departamentos:', error)
       setDepartments([])
@@ -65,8 +66,8 @@ export function useDepartment(): UseDepartmentReturn {
   const loadDepartmentById = useCallback(async (id: string): Promise<void> => {
     try {
       setIsLoading(true)
-      const response = await api.get(`/departments/${id}`)
-      setDepartment(response.data)
+      const response = await api.get(`/department/${id}`)
+      setDepartment(response.data || null)
     } catch (error) {
       console.error('[useDepartment] Erro ao carregar departamento:', error)
       setDepartment(null)
@@ -111,7 +112,7 @@ export function useDepartment(): UseDepartmentReturn {
 
     try {
       setIsLoading(true)
-      const response = await api.post('/departments', data)
+      const response = await api.post('/department', data)
       setDepartments((prev) => [...prev, response.data])
       console.log('[useDepartment] Departamento criado:', response.data)
     } catch (error) {
@@ -129,7 +130,7 @@ export function useDepartment(): UseDepartmentReturn {
 
     try {
       setIsLoading(true)
-      const response = await api.patch(`/departments/${id}`, data)
+      const response = await api.patch(`/department/${id}`, data)
       setDepartments((prev) => prev.map((dept) => (dept.id === id ? response.data : dept)))
       setDepartment(response.data)
       console.log('[useDepartment] Departamento atualizado:', response.data)
@@ -144,7 +145,7 @@ export function useDepartment(): UseDepartmentReturn {
   const deleteDepartment = async (id: string): Promise<void> => {
     try {
       setIsLoading(true)
-      await api.delete(`/departments/${id}`)
+      await api.delete(`/department/${id}`)
       setDepartments((prev) => prev.filter((dept) => dept.id !== id))
       console.log('[useDepartment] Departamento deletado:', id)
     } catch (error) {
