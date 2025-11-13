@@ -1,11 +1,5 @@
 import api from '../services/api'
 
-interface LoginResponse {
-  success: boolean
-  data?: string
-  error?: unknown
-}
-
 export function useAuth(): {
   login: (email: string, password: string) => Promise<string>
   logout: () => void
