@@ -1,7 +1,13 @@
 import AddTool from '@pages/AddTool'
 import Alerts from '@pages/Alerts'
+import CreateDepartment from '@pages/CreateDepartment'
+import CreateEquipment from '@pages/CreateEquipment'
 import DeleteProfile from '@pages/DeleteProfile'
+import Departments from '@pages/Departments'
+import EditDepartment from '@pages/EditDepartment'
+import EditEquipment from '@pages/EditEquipment'
 import EditProfile from '@pages/EditProfile'
+import Equipment from '@pages/Equipment'
 import Home from '@pages/Home'
 import Login from '@pages/Login'
 import Maintenance from '@pages/Maintenance'
@@ -24,6 +30,16 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/addTool" element={<AddTool />} />
       <Route path="/maintenance" element={<Maintenance />} />
       <Route path="/alerts" element={<Alerts />} />
+
+      {/* Equipamentos */}
+      <Route path="/equipments" element={<Equipment />} />
+      <Route path="/equipment-create" element={<CreateEquipment />} />
+      <Route path="/equipment-edit/:id" element={<EditEquipment />} />
+
+      {/* Departamentos */}
+      <Route path="/departments" element={<Departments />} />
+      <Route path="/department-create" element={<CreateDepartment />} />
+      <Route path="/department-edit/:id" element={<EditDepartment />} />
     </Routes>
   )
 }
