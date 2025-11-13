@@ -1,5 +1,6 @@
 import Logo from '@assets/icons/Logo.svg'
 import {
+  Building2,
   ChevronsLeft,
   Home,
   LogOut,
@@ -65,7 +66,14 @@ export default function Sidebar(): React.JSX.Element {
             icon={<MonitorCog size={25} />}
             label="Equipamentos"
             onClick={() => {
-              navigate('/tools')
+              navigate('/equipments')
+            }}
+          />
+          <SidebarItem
+            icon={<Building2 size={25} />}
+            label="Departamentos"
+            onClick={() => {
+              navigate('/departments')
             }}
           />
           <SidebarItem
