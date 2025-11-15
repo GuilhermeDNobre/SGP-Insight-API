@@ -1,16 +1,16 @@
-import { EquipmentData } from '../types/equipment';
+import { EquipmentData } from '../types/equipment'
 
 export const MOCKED_EQUIPMENT_LIST: EquipmentData[] = [
   {
     id: 'a1b2c3d4',
     displayId: 'AN0000001',
-    name: 'Equipamento X',
+    name: 'Notebook Lenovo',
     status: 'ativo',
-    location: 'Setor X',
+    location: 'Escritório',
     components: [
       { id: 'c1', type: 'Processador', name: 'Intel Core i7-12700K' },
-      { id: 'c2', type: 'Placa de Vídeo', name: 'NVIDIA RTX 4070' },
-    ],
+      { id: 'c2', type: 'Placa de Vídeo', name: 'NVIDIA RTX 4070' }
+    ]
   },
   {
     id: 'e5f6g7h8',
@@ -20,8 +20,8 @@ export const MOCKED_EQUIPMENT_LIST: EquipmentData[] = [
     location: 'Data Center',
     components: [
       { id: 'c3', type: 'Processador', name: 'AMD EPYC 7763' },
-      { id: 'c4', type: 'Memória RAM', name: '128GB DDR4 ECC' },
-    ],
+      { id: 'c4', type: 'Memória RAM', name: '128GB DDR4 ECC' }
+    ]
   },
   {
     id: 'i9j0k1l2',
@@ -31,7 +31,7 @@ export const MOCKED_EQUIPMENT_LIST: EquipmentData[] = [
     location: 'Armário 3',
     components: [
       { id: 'c5', type: 'Processador', name: 'Intel Core i5-1135G7' },
-      { id: 'c6', type: 'Armazenamento (SSD)', name: 'Samsung 512GB NVMe' },
-    ],
-  },
-];
+      { id: 'c6', type: 'Armazenamento (SSD)', name: 'Samsung 512GB NVMe' }
+    ]
+  }
+]

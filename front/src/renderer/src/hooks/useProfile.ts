@@ -1,10 +1,12 @@
-import { useCallback, useState } from 'react'
+import { useEffect, useState } from 'react'
+import api from '../services/api'
+import { useAuth } from './useAuth'
 
 export interface UserData {
   id: string
-  fullName: string
+  firstName: string
   email: string
-  cnpj: string
+  role: 'ADMIN' | 'MANAGER'
   profilePicture?: string
 }
 
@@ -14,15 +16,15 @@ interface Passwords {
 }
 
 interface FormErrors {
-  fullName?: string
+  firstName?: string
   email?: string
   currentPassword?: string
   newPassword?: string
 }
 
 interface UseProfileReturn {
-  userData: UserData
-  setUserData: (data: UserData | ((prev: UserData) => UserData)) => void
+  userData: UserData | null
+  setUserData: (data: UserData | ((prev: UserData | null) => UserData | null)) => void
   passwords: Passwords
   setPasswords: (data: Passwords | ((prev: Passwords) => Passwords)) => void
   errors: FormErrors
@@ -30,32 +32,71 @@ interface UseProfileReturn {
   previewImage: string | null
   updateProfile: (profilePicture?: File) => Promise<void>
   handleImagePreview: (e: React.ChangeEvent<HTMLInputElement>) => void
+  deleteProfile: () => Promise<void>
+  loadUserData: () => Promise<void>
 }
 
 export function useProfile(): UseProfileReturn {
-  const [userData, setUserData] = useState<UserData>({
-    id: '1',
-    fullName: 'John Doe',
-    email: 'john@example.com',
-    cnpj: '12.345.678/0001-90'
-  })
-
+  const [userData, setUserData] = useState<UserData | null>(null)
   const [passwords, setPasswords] = useState<Passwords>({
     currentPassword: '',
     newPassword: ''
   })
-
   const [errors, setErrors] = useState<FormErrors>({})
   const [isLoading, setIsLoading] = useState(false)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const { getToken, logout } = useAuth()
+
+  // Carregar dados do usuário na montagem do componente
+  const loadUserData = async (): Promise<void> => {
+    try {
+      setIsLoading(true)
+      const token = getToken()
+      if (!token) {
+        throw new Error('Token não encontrado')
+      }
+
+      // Decodificar JWT para pegar o userId
+      const parts = token.split('.')
+      if (parts.length !== 3) throw new Error('Token inválido')
+
+      const decoded = JSON.parse(atob(parts[1]))
+      console.log('[Profile] Dados do token:', decoded)
+
+      // Atualizar userData com os dados do token (que já contém userId, email, role)
+      setUserData({
+        id: decoded.userId,
+        firstName: decoded.email.split('@')[0], // Usamos o email como fallback
+        email: decoded.email,
+        role: decoded.role
+      })
+
+      // Limpar erros ao carregar com sucesso
+      setErrors({})
+    } catch (error) {
+      console.error('[Profile] Erro ao carregar dados:', error)
+      setErrors({
+        firstName: error instanceof Error ? error.message : 'Erro ao carregar perfil'
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Carregar dados ao montar o componente
+  useEffect(() => {
+    void loadUserData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
 
-    if (!userData.fullName) {
-      newErrors.fullName = 'Nome completo é obrigatório'
+    if (!userData?.firstName) {
+      newErrors.firstName = 'Nome é obrigatório'
     }
 
-    if (!userData.email) {
+    if (!userData?.email) {
       newErrors.email = 'E-mail é obrigatório'
     } else if (!/\S+@\S+\.\S+/.test(userData.email)) {
       newErrors.email = 'E-mail inválido'
@@ -73,7 +114,7 @@ export function useProfile(): UseProfileReturn {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleImagePreview = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImagePreview = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0]
     if (file) {
       const reader = new FileReader()
@@ -82,25 +123,70 @@ export function useProfile(): UseProfileReturn {
       }
       reader.readAsDataURL(file)
     }
-  }, [])
+  }
 
-  const updateProfile = async (profilePicture?: File): Promise<void> => {
-    if (!validateForm()) {
+  const updateProfile = async (): Promise<void> => {
+    if (!validateForm() || !userData) {
       throw new Error('Formulário inválido')
     }
 
     try {
       setIsLoading(true)
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 500))
 
-      // Here you would normally send the data to your API
-      console.log('Dados atualizados:', { userData, passwords, profilePicture })
+      // Preparar dados para atualização
+      const updateData = {
+        firstName: userData.firstName,
+        email: userData.email,
+        password: passwords.newPassword || undefined
+      }
 
-      // Clear password fields after successful update
+      console.log('[Profile] Atualizando perfil com:', updateData)
+
+      // Fazer requisição para atualizar perfil
+      const response = await api.patch('/users', updateData)
+
+      console.log('[Profile] Perfil atualizado:', response.data)
+
+      // Atualizar userData local com dados retornados
+      setUserData((prev) => {
+        if (!prev) return null
+        return {
+          ...prev,
+          firstName: response.data.firstName || prev.firstName,
+          email: response.data.email || prev.email
+        }
+      })
+
+      // Limpar campos de senha
       setPasswords({ currentPassword: '', newPassword: '' })
-    } catch {
-      throw new Error('Erro ao atualizar perfil')
+    } catch (error) {
+      console.error('[Profile] Erro ao atualizar:', error)
+      throw error instanceof Error ? error : new Error('Erro ao atualizar perfil')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const deleteProfile = async (): Promise<void> => {
+    try {
+      setIsLoading(true)
+
+      if (!userData) {
+        throw new Error('Dados do usuário não encontrados')
+      }
+
+      console.log('[Profile] Deletando perfil:', userData.id)
+
+      // Fazer requisição para deletar perfil (soft delete)
+      await api.delete(`/users/${userData.id}`)
+
+      console.log('[Profile] Perfil deletado com sucesso')
+
+      // Logout e redirecionar
+      logout()
+    } catch (error) {
+      console.error('[Profile] Erro ao deletar:', error)
+      throw error instanceof Error ? error : new Error('Erro ao deletar perfil')
     } finally {
       setIsLoading(false)
     }
@@ -115,6 +201,8 @@ export function useProfile(): UseProfileReturn {
     isLoading,
     previewImage,
     updateProfile,
-    handleImagePreview
+    handleImagePreview,
+    deleteProfile,
+    loadUserData
   }
 }
