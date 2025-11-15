@@ -1,5 +1,6 @@
 import Logo from '@assets/icons/Logo.svg'
 import {
+  Building2,
   ChevronsLeft,
   Home,
   LogOut,
@@ -19,9 +20,9 @@ export default function Sidebar(): React.JSX.Element {
   return (
     <>
       {/* Botão de abrir menu */}
-      <button className="fixed top-2 left-2 p-2 rounded-md transition transform hover:scale-95 z-30">
+      <div className="fixed top-2 left-2 p-2 rounded-md transition transform hover:scale-95 z-30">
         <SidebarItem icon={<Menu size={20} />} label="Menu" onClick={() => setIsOpen(true)} />
-      </button>
+      </div>
 
       {/* Overlay escurecido */}
       {isOpen && (
@@ -65,7 +66,14 @@ export default function Sidebar(): React.JSX.Element {
             icon={<MonitorCog size={25} />}
             label="Equipamentos"
             onClick={() => {
-              navigate('/tools')
+              navigate('/equipments')
+            }}
+          />
+          <SidebarItem
+            icon={<Building2 size={25} />}
+            label="Departamentos"
+            onClick={() => {
+              navigate('/departments')
             }}
           />
           <SidebarItem

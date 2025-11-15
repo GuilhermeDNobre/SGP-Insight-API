@@ -3,7 +3,7 @@ import React from 'react'
 
 function Profile(): React.JSX.Element {
   return (
-    <div className="w-screen h-screen bg-[var(--sec)] flex justify-center items-center relative">
+    <div className="w-screen h-screen bg-(--sec) flex justify-center items-center relative">
       {/* Sidebar fixa */}
       <Sidebar />
 

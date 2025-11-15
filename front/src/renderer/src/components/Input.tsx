@@ -21,19 +21,16 @@ export default function Input({
 
   const variants: Record<string, string> = {
     default: 'text-sm font-medium text-[var(--black)]',
-    white: 'text-sm font-medium text-[var(--white)]',
+    white: 'text-sm font-medium text-[var(--white)]'
   }
 
   return (
     <div className="flex flex-col w-full gap-1">
-      { label !== undefined &&
-       <label className={`${variants[labelVariant]}`}>{label}</label>
-      }
+      {label !== undefined && <label className={`${variants[labelVariant]}`}>{label}</label>}
 
       <div className="relative">
         <input
           {...props}
-
           type={isPassword && showPassword ? 'text' : type}
           className={`w-full rounded-md border border-(--light-gray) bg---white)
             px-3 py-2 text-sm text-(--black) placeholder:text-(--gray)
@@ -54,7 +51,7 @@ export default function Input({
         {isSearch && (
           <button
             type="submit"
-            onClick={() => {}} 
+            onClick={() => {}}
             className="absolute inset-y-0 right-3 flex items-center text-(--gray)"
           >
             <Search size={16} />
