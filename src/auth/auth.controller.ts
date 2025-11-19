@@ -48,4 +48,18 @@ export class AuthController {
     if(!user) throw new HttpException('User already exists', 400);
     return user;
   }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    return this.AuthService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  async resetPassword(
+    @Body('token') token: string,
+    @Body('newPassword') newPassword: string,
+    @Body('confirmPassword') confirmPassword: string,
+  ) {
+    return this.AuthService.resetPassword(token, newPassword, confirmPassword);
+  }
 }
