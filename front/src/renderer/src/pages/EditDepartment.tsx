@@ -1,18 +1,37 @@
 import { useDepartment } from '@hooks/useDepartment'
 import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 function EditDepartment(): React.JSX.Element {
   const navigate = useNavigate()
-  const { updateDepartment, isLoading, errors } = useDepartment()
+  const { id } = useParams<{ id: string }>()
+
+  const { updateDepartment, isLoading, errors, loadDepartmentById, department } = useDepartment()
   const [formData, setFormData] = useState({
     name: '',
     location: '',
     responsableName: '',
     responsableEmail: ''
   })
+
+  useEffect(() => {
+    if (id && loadDepartmentById) {
+      void loadDepartmentById(id)
+    }
+  }, [id, loadDepartmentById])
+
+  useEffect(() => {
+    if (department) {
+      setFormData({
+        name: department.name || '',
+        location: department.location || '',
+        responsableName: department.responsableName || '', 
+        responsableEmail: department.responsableEmail || ''
+      })
+    }
+  }, [department])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target
@@ -24,16 +43,27 @@ function EditDepartment(): React.JSX.Element {
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
-
+    
+    if (!id) return
+    
     try {
-      // Mock ID for now - in production this would come from route params
-      const departmentId = '1'
-      await updateDepartment(departmentId, formData)
+      await updateDepartment(id, formData)
       alert('Departamento atualizado com sucesso!')
       navigate('/departments')
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Erro ao atualizar departamento')
     }
+  }
+
+  if (isLoading && !department) {
+    return (
+      <div className="flex w-screen h-screen bg-white">
+        <Sidebar />
+        <main className="grow flex justify-center items-center">
+          <p className="text-gray-500">Carregando departamento...</p>
+        </main>
+      </div>
+    )
   }
 
   return (

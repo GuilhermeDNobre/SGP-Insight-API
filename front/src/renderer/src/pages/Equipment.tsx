@@ -148,7 +148,7 @@ function Equipment(): React.JSX.Element {
 
         {isLoading ? (
           <div className="flex justify-center items-center h-96 w-full">
-            <p className="text-gray-500">Carregando equipamentos...</p>
+            <p className="text-gray-500 text-lg">Carregando equipamentos...</p>
           </div>
         ) : (
           <div className="w-full flex-1 overflow-y-auto flex flex-col gap-2.5">
