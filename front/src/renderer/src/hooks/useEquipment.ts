@@ -43,11 +43,15 @@ interface UseEquipmentReturn {
   isLoading: boolean
   errors: FormErrors
   setErrors: (errors: FormErrors) => void
-  loadEquipments: () => Promise<void>
+  loadEquipments: (page?: number, search?: string) => Promise<void>
   loadEquipmentById: (id: string) => Promise<void>
   createEquipment: (data: CreateEquipmentInput) => Promise<void>
   updateEquipment: (id: string, data: UpdateEquipmentInput) => Promise<void>
   deleteEquipment: (id: string) => Promise<void>
+  page: number
+  totalPages: number
+  totalItems: number
+  changePage: (page: number) => void
 }
 
 export function useEquipment(): UseEquipmentReturn {
@@ -56,14 +60,30 @@ export function useEquipment(): UseEquipmentReturn {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
 
-  const loadEquipments = useCallback(async (): Promise<void> => {
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+
+  const loadEquipments = useCallback(async (pageToLoad = 1, search = ''): Promise<void> => {
     try {
       setIsLoading(true)
-      const response = await api.get('/equipment')
-      // API returns paginated response: { data: [...], meta: {...} }
+
+      let url = `/equipment?page=${pageToLoad}&limit=10`
+      if (search) {
+        url += `&search=${encodeURIComponent(search)}`
+      }
+
+      const response = await api.get(url);      // API returns paginated response: { data: [...], meta: {...} }
       const data =
         response.data?.data && Array.isArray(response.data.data) ? response.data.data : []
+      const meta = response.data?.meta
       setEquipments(data)
+
+      if (meta) {
+        setPage(meta.page)
+        setTotalPages(meta.lastPage)
+        setTotalItems(meta.total)
+      }
     } catch (error) {
       console.error('[useEquipment] Erro ao carregar equipamentos:', error)
       setEquipments([])
@@ -115,6 +135,7 @@ export function useEquipment(): UseEquipmentReturn {
       setIsLoading(true)
       const response = await api.post('/equipment', data)
       setEquipments((prev) => [...prev, response.data])
+      await loadEquipments(page)
       console.log('[useEquipment] Equipamento criado:', response.data)
     } catch (error) {
       console.error('[useEquipment] Erro ao criar equipamento:', error)
@@ -146,7 +167,7 @@ export function useEquipment(): UseEquipmentReturn {
   const deleteEquipment = async (id: string): Promise<void> => {
     try {
       setIsLoading(true)
-      await api.delete(`/equipment/${id}`)
+      await api.patch(`/equipment/${id}/disable`)
       setEquipments((prev) => prev.filter((eq) => eq.id !== id))
       console.log('[useEquipment] Equipamento deletado:', id)
     } catch (error) {
@@ -167,6 +188,10 @@ export function useEquipment(): UseEquipmentReturn {
     loadEquipmentById,
     createEquipment,
     updateEquipment,
-    deleteEquipment
+    deleteEquipment,
+    page,
+    totalPages,
+    totalItems,
+    changePage: loadEquipments
   }
 }

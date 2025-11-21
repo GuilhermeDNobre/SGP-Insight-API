@@ -2,109 +2,42 @@ import { useEquipment } from '@hooks/useEquipment'
 import Button from '@renderer/components/Button'
 import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
-import { ListFilter, Plus } from 'lucide-react'
-import React, { useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-
-interface EquipmentCardProps {
-  id: string
-  name: string
-  ean: string
-  alocatedAtId: string
-  disabled: boolean
-  createdAt: string
-  alocatedAt?: {
-    id: string
-    name: string
-    location: string
-    responsableName: string
-    responsableEmail: string
-  }
-}
-
-const EquipmentCardRow: React.FC<{
-  equipment: EquipmentCardProps
-  onEdit: (id: string) => void
-  onDelete: (id: string, name: string) => void
-}> = ({ equipment, onEdit, onDelete }) => {
-  return (
-    <div className="w-full rounded-lg border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-3 hover:shadow-md transition">
-      {/* Header: Título e Ações */}
-      <div className="flex flex-row items-center justify-between">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-bold text-gray-900">{equipment.name}</h2>
-          <span className="text-sm text-gray-500">EAN: {equipment.ean}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onEdit(equipment.id)}
-            className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-100 rounded transition"
-            title="Editar"
-          >
-            Editar
-          </button>
-          <button
-            onClick={() => onDelete(equipment.id, equipment.name)}
-            className="px-3 py-1 text-sm text-red-600 hover:bg-red-100 rounded transition"
-            title="Deletar"
-          >
-            Deletar
-          </button>
-        </div>
-      </div>
-
-      {/* Status e Info */}
-      <div className="flex flex-row items-center justify-between">
-        <div>
-          <span
-            className={`rounded-full px-4 py-1 text-sm font-semibold ${
-              equipment.disabled ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-            }`}
-          >
-            {equipment.disabled ? 'Desativado' : 'Ativo'}
-          </span>
-        </div>
-        <div className="text-sm text-gray-600">
-          <strong>Departamento:</strong> {equipment.alocatedAt?.name || equipment.alocatedAtId}
-        </div>
-        <div className="text-sm text-gray-600">
-          <strong>Criado em:</strong> {new Date(equipment.createdAt).toLocaleDateString('pt-BR')}
-        </div>
-      </div>
-    </div>
-  )
-}
+import { ListFilter, Plus, Edit, Trash2 } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 function Equipment(): React.JSX.Element {
   const navigate = useNavigate()
-  const location = useLocation()
-  const { equipments, isLoading, loadEquipments, deleteEquipment } = useEquipment()
+  const { 
+    equipments, 
+    isLoading, 
+    loadEquipments, 
+    deleteEquipment,
+    page,          // Página atual
+    totalPages,    // Total de páginas
+    changePage     // Função para trocar página
+  } = useEquipment()
   const [searchTerm, setSearchTerm] = useState<string>('')
 
   useEffect(() => {
-    void loadEquipments()
-  }, [location.pathname, loadEquipments])
-
-  const filteredEquipment = useMemo(() => {
-    const term = searchTerm.toLowerCase().trim()
-
-    return equipments.filter((equipment) => {
-      const nameMatch = equipment.name.toLowerCase().includes(term)
-      const eanMatch = equipment.ean.toLowerCase().includes(term)
-      return nameMatch || eanMatch
-    })
-  }, [searchTerm, equipments])
+    void loadEquipments(page, searchTerm)
+  }, [loadEquipments, page])
 
   const handleDelete = async (id: string, name: string): Promise<void> => {
     if (window.confirm(`Tem certeza que deseja deletar o equipamento "${name}"?`)) {
       try {
         await deleteEquipment(id)
         alert('Equipamento deletado com sucesso!')
+        await loadEquipments(page)
       } catch (error) {
         alert(error instanceof Error ? error.message : 'Erro ao deletar equipamento')
       }
     }
+  }
+
+  const handleSearch = () => {
+    // Volta para a página 1 sempre que buscar algo novo
+    void loadEquipments(1, searchTerm)
   }
 
   return (
@@ -123,6 +56,9 @@ function Equipment(): React.JSX.Element {
               placeholder="Digite o nome ou código do equipamento"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSearch()
+              }}
               className="h-[30px] flex-1"
             />
             <Button
@@ -146,32 +82,123 @@ function Equipment(): React.JSX.Element {
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-96 w-full">
-            <p className="text-gray-500 text-lg">Carregando equipamentos...</p>
+        <div className="bg-white rounded-lg shadow border border-gray-200 flex flex-col flex-1 overflow-hidden w-full">
+          
+          {/* Área de Rolagem da Tabela */}
+          <div className="overflow-auto flex-1 ">
+            <table className="text-left text-sm text-gray-600 w-full border-collapse">
+              <thead className="bg-gray-100 text-xs uppercase font-semibold text-gray-700 sticky top-0 z-10 shadow-sm">
+                <tr>
+                  <th className="px-6 py-4">Modelo / Nome</th>
+                  <th className="px-6 py-4">EAN</th>
+                  <th className="px-6 py-4">Setor</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {isLoading ? (
+                  // ESTADO DE CARREGAMENTO (Adaptado para Tabela)
+                  <tr>
+                    <td colSpan={5} className="text-center py-20">
+                      <div className="flex flex-col justify-center items-center gap-3">
+                         <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
+                        <p className="text-gray-500 text-lg">Carregando equipamentos...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : equipments.length === 0 ? (
+                  // ESTADO VAZIO (Com a lógica que você pediu)
+                  <tr>
+                    <td colSpan={5} className="text-center py-20">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <p className="text-gray-500 text-lg">
+                          {searchTerm 
+                            ? 'Nenhum equipamento encontrado para sua busca.' 
+                            : 'Nenhum equipamento cadastrado.'}
+                        </p>
+                        {searchTerm && (
+                          <button 
+                            onClick={() => setSearchTerm('')} // Limpa a busca
+                            className="text-blue-600 hover:underline text-sm"
+                          >
+                            Limpar filtros
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  // LISTAGEM DOS DADOS
+                  equipments.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50 transition duration-150">
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        {item.name}
+                      </td>
+                      <td className="px-6 py-4 font-mono text-xs">
+                        {item.ean || '-'}
+                      </td>
+                      <td className="px-6 py-4">
+                        {item.alocatedAt?.name || <span className="text-gray-400 italic">Não alocado</span>}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                          ${!item.disabled 
+                            ? 'bg-green-100 text-green-800 border border-green-200' 
+                            : 'bg-red-100 text-red-800 border border-red-200'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${!item.disabled ? 'bg-green-600' : 'bg-red-600'}`}></span>
+                          {!item.disabled ? 'Ativo' : 'Desativado'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        <div className="flex justify-end gap-2">
+                          <button 
+                            onClick={() => navigate(`/equipment-edit/${item.id}`)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition"
+                            title="Editar"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(item.id, item.name)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded transition"
+                            title="Excluir"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          <div className="w-full flex-1 overflow-y-auto flex flex-col gap-2.5">
-            {filteredEquipment.length > 0 ? (
-              filteredEquipment.map((equipment) => (
-                <EquipmentCardRow
-                  key={equipment.id}
-                  equipment={equipment}
-                  onEdit={(id) => navigate(`/equipment-edit/${id}`)}
-                  onDelete={handleDelete}
-                />
-              ))
-            ) : (
-              <div className="flex justify-center items-center h-40 w-full">
-                <p className="text-gray-500">
-                  {equipments.length === 0
-                    ? 'Nenhum equipamento cadastrado.'
-                    : 'Nenhum equipamento encontrado.'}
-                </p>
-              </div>
-            )}
+
+          {/* Rodapé de Paginação */}
+          <div className="border-t border-gray-200 px-6 py-4 flex items-center justify-between bg-gray-50 shrink-0">
+            <span className="text-sm text-gray-700">
+              Página <span className="font-semibold text-gray-900">{page}</span> de <span className="font-semibold text-gray-900">{totalPages}</span>
+            </span>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={() => changePage(page - 1)}
+                disabled={page === 1 || isLoading}
+                className="px-3 py-1.5 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => changePage(page + 1)}
+                disabled={page === totalPages || isLoading}
+                className="px-3 py-1.5 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Próximo
+              </button>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   )
