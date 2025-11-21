@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import api from '../services/api'
+import { ComponentData } from '../types/equipment';
 
 export interface EquipmentData {
   id: string
@@ -22,6 +23,7 @@ export interface CreateEquipmentInput {
   name: string
   ean: string
   alocatedAtId: string
+  components?: ComponentData[] 
 }
 
 export interface UpdateEquipmentInput {
@@ -45,7 +47,7 @@ interface UseEquipmentReturn {
   setErrors: (errors: FormErrors) => void
   loadEquipments: (page?: number, search?: string) => Promise<void>
   loadEquipmentById: (id: string) => Promise<void>
-  createEquipment: (data: CreateEquipmentInput) => Promise<void>
+  createEquipment: (data: CreateEquipmentInput) => Promise<EquipmentData>
   updateEquipment: (id: string, data: UpdateEquipmentInput) => Promise<void>
   deleteEquipment: (id: string) => Promise<void>
   page: number
@@ -126,7 +128,7 @@ export function useEquipment(): UseEquipmentReturn {
     return Object.keys(newErrors).length === 0
   }
 
-  const createEquipment = async (data: CreateEquipmentInput): Promise<void> => {
+  const createEquipment = async (data: CreateEquipmentInput): Promise<EquipmentData> => {
     if (!validateForm(data)) {
       throw new Error('Formulário inválido')
     }
@@ -134,9 +136,12 @@ export function useEquipment(): UseEquipmentReturn {
     try {
       setIsLoading(true)
       const response = await api.post('/equipment', data)
+
       setEquipments((prev) => [...prev, response.data])
+
       await loadEquipments(page)
       console.log('[useEquipment] Equipamento criado:', response.data)
+      return response.data
     } catch (error) {
       console.error('[useEquipment] Erro ao criar equipamento:', error)
       throw error instanceof Error ? error : new Error('Erro ao criar equipamento')

@@ -35,7 +35,7 @@ function Equipment(): React.JSX.Element {
     }
   }
 
-  const handleSearch = () => {
+  const handleSearch = (): void => {
     // Volta para a página 1 sempre que buscar algo novo
     void loadEquipments(1, searchTerm)
   }

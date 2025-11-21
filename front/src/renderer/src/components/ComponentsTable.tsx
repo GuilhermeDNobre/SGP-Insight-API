@@ -16,7 +16,6 @@ export const ComponentTable: React.FC<ComponentTableProps> = ({
 }) => {
   return (
     <div className="flex flex-col gap-2.5">
-      <label className="text-sm font-medium text-gray-700">Componentes:</label>
       
       {/* Tabela */}
       <div className="w-full overflow-hidden rounded-lg border border-gray-200 overflow-y-auto max-h-36">
@@ -38,7 +37,7 @@ export const ComponentTable: React.FC<ComponentTableProps> = ({
             {components.map((comp) => (
               <tr key={comp.id}>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-800">{comp.type}</td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-800">{comp.name}</td>
+                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-800">{comp.model}</td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm">
                   {/* Assumindo que seu botão pode ser pequeno ou ter variante "danger" */}
                   <Button
@@ -56,7 +55,7 @@ export const ComponentTable: React.FC<ComponentTableProps> = ({
       </div>
 
       {/* Botão de Adicionar */}
-      <div className="flex justify-center pt-2">
+      <div className="flex justify-center pt-2 pb-4">
         <Button
           label="Adicionar Componente"
           variant="secondary"
