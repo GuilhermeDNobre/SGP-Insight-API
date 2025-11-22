@@ -8,6 +8,7 @@ import EditDepartment from '@pages/EditDepartment'
 import EditEquipment from '@pages/EditEquipment'
 import EditProfile from '@pages/EditProfile'
 import Equipment from '@pages/Equipment'
+import EquipmentDetails from '@pages/EquipmentView'
 import Home from '@pages/Home'
 import Login from '@pages/Login'
 import Maintenance from '@pages/Maintenance'
@@ -35,7 +36,8 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/equipments" element={<Equipment />} />
       <Route path="/equipment-create" element={<CreateEquipment />} />
       <Route path="/equipment-edit/:id" element={<EditEquipment />} />
-
+      <Route path="/equipment-details/:id" element={<EquipmentDetails />} />
+      
       {/* Departamentos */}
       <Route path="/departments" element={<Departments />} />
       <Route path="/department-create" element={<CreateDepartment />} />

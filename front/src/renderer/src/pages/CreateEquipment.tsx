@@ -75,14 +75,17 @@ function CreateEquipment(): React.JSX.Element {
         // Mapeia os campos do Front (type/model) para o Banco (name/status/equipment_id)
         const promises = components.map(comp => {
           return api.post('/components', {
-            equipment_id: newEquipment.id, // Vincula ao pai
+            equipmentId: newEquipment.id,
             name: `${comp.type} - ${comp.model}`, // Concatena pois o banco só tem 'name'
-            status: 'Ativo' // Valor padrão exigido pelo banco
+            status: 'OK'
           })
         })
         
         await Promise.all(promises)
       }
+
+      alert('Equipamento criado com sucesso!')
+
       navigate('/equipments')
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Erro ao criar equipamento')
@@ -128,7 +131,7 @@ function CreateEquipment(): React.JSX.Element {
                     name="alocatedAtId"
                     value={formData.alocatedAtId}
                     onChange={handleChange}
-                    className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
                       errors.alocatedAtId ? 'border-red-500' : 'border-gray-300'
                     }`}
                   >

@@ -2,7 +2,7 @@ import { useEquipment } from '@hooks/useEquipment'
 import Button from '@renderer/components/Button'
 import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
-import { ListFilter, Plus, Edit, Trash2 } from 'lucide-react'
+import { ListFilter, Plus, Edit, Trash2, Eye} from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -152,6 +152,13 @@ function Equipment(): React.JSX.Element {
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
                         <div className="flex justify-end gap-2">
+                          <button 
+                            onClick={() => navigate(`/equipment-details/${item.id}`)}
+                            className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition"
+                            title="Ver Detalhes"
+                          >
+                            <Eye size={16} />
+                          </button>
                           <button 
                             onClick={() => navigate(`/equipment-edit/${item.id}`)}
                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition"

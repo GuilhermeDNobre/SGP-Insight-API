@@ -5,8 +5,8 @@ import { Plus, Trash2 } from 'lucide-react';
 
 interface ComponentTableProps {
   components: ComponentData[];
-  onRemove: (id: string) => void;
-  onAdd: () => void;
+  onRemove?: (id: string) => void;
+  onAdd?: () => void;
 }
 
 export const ComponentTable: React.FC<ComponentTableProps> = ({
@@ -38,16 +38,18 @@ export const ComponentTable: React.FC<ComponentTableProps> = ({
               <tr key={comp.id}>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-800">{comp.type}</td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-800">{comp.model}</td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm">
-                  {/* Assumindo que seu botão pode ser pequeno ou ter variante "danger" */}
-                  <Button
-                    label="Remover"
-                    variant="secondary" // Crie uma variante 'danger' se puder
-                    className="h-auto bg-red-100 text-red-700 hover:bg-red-200 border-red-200"
-                    endIcon={<Trash2 size={14} />}
-                    onClick={() => onRemove(comp.id)}
-                  />
-                </td>
+                {onRemove &&  (
+                  <td className="whitespace-nowrap px-6 py-4 text-sm">
+                    {/* Assumindo que seu botão pode ser pequeno ou ter variante "danger" */}
+                    <Button
+                      label="Remover"
+                      variant="secondary" // Crie uma variante 'danger' se puder
+                      className="h-auto bg-red-100 text-red-700 hover:bg-red-200 border-red-200"
+                      endIcon={<Trash2 size={14} />}
+                      onClick={() => onRemove(comp.id)}
+                    />
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -55,14 +57,16 @@ export const ComponentTable: React.FC<ComponentTableProps> = ({
       </div>
 
       {/* Botão de Adicionar */}
-      <div className="flex justify-center pt-2 pb-4">
-        <Button
-          label="Adicionar Componente"
-          variant="secondary"
-          endIcon={<Plus size={16} />}
-          onClick={onAdd}
-        />
-      </div>
+      {onAdd && (
+        <div className="flex justify-center pt-2 pb-4">
+          <Button
+            label="Adicionar Componente"
+            variant="secondary"
+            endIcon={<Plus size={16} />}
+            onClick={onAdd}
+          />
+        </div>
+      )}
     </div>
   );
 };
