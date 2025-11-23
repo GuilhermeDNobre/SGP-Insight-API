@@ -25,6 +25,8 @@ function CreateEquipment(): React.JSX.Element {
 
   const [components, setComponents] = useState<ComponentData[]>([])
 
+  const [editingCompId, setEditingCompId] = useState<string | null>(null)
+
   const [isAddCompModalOpen, setIsAddCompModalOpen] = useState(false)
   const [compToDelete, setCompToDelete] = useState<string | null>(null)
 
@@ -42,20 +44,43 @@ function CreateEquipment(): React.JSX.Element {
     }))
   }
 
-  const handleAddComponent = (data: { type: string; model: string }): void => {
-    const newComp: ComponentData = {
-      id: crypto.randomUUID(), // Temp ID for React key
-      type: data.type,
-      model: data.model
+  const handleSaveComponent = (data: { type: string; model: string }): void => {
+    if (editingCompId) {
+      setComponents((prev) => 
+        prev.map((comp) => 
+          comp.id === editingCompId 
+            ? { ...comp, type: data.type, model: data.model } // Atualiza os dados
+            : comp
+        )
+      )
+    } else {
+      const newComp: ComponentData = {
+        id: crypto.randomUUID(),
+        type: data.type,
+        model: data.model
+      }
+      setComponents((prev) => [...prev, newComp])
     }
-    setComponents((prev) => [...prev, newComp])
-    setIsAddCompModalOpen(false) // Close the modal
+    
+    // Fecha e limpa
+    setIsAddCompModalOpen(false)
+    setEditingCompId(null)
+  }
+
+  const handleOpenAddModal = (): void => {
+    setEditingCompId(null) // Garante que não estamos editando ninguém
+    setIsAddCompModalOpen(true)
+  }
+
+  const handleOpenEditModal = (comp: ComponentData): void => {
+    setEditingCompId(comp.id) // Marca quem vamos editar
+    setIsAddCompModalOpen(true)
   }
 
   const handleConfirmRemoveComponent = (): void => {
     if (compToDelete) {
       setComponents((prev) => prev.filter((c) => c.id !== compToDelete))
-      setCompToDelete(null) // Close confirmation
+      setCompToDelete(null)
     }
   }
 
@@ -72,11 +97,10 @@ function CreateEquipment(): React.JSX.Element {
 
       // 2. Se tiver componentes, salva um por um
       if (components.length > 0 && newEquipment?.id) {
-        // Mapeia os campos do Front (type/model) para o Banco (name/status/equipment_id)
         const promises = components.map(comp => {
           return api.post('/components', {
             equipmentId: newEquipment.id,
-            name: `${comp.type} - ${comp.model}`, // Concatena pois o banco só tem 'name'
+            name: `${comp.type} - ${comp.model}`, 
             status: 'OK'
           })
         })
@@ -85,7 +109,6 @@ function CreateEquipment(): React.JSX.Element {
       }
 
       alert('Equipamento criado com sucesso!')
-
       navigate('/equipments')
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Erro ao criar equipamento')
@@ -156,10 +179,12 @@ function CreateEquipment(): React.JSX.Element {
               </div>
 
               <div className="rounded-lg border border-gray-200 bg-gray-50">
+                {/* MUDANÇA 4: Passando as novas props para a Tabela */}
                 <ComponentTable 
                   components={components} 
                   onRemove={(id) => setCompToDelete(id)} 
-                  onAdd={() => setIsAddCompModalOpen(true)}
+                  onEdit={handleOpenEditModal} // Passa a função de abrir edição
+                  onAdd={handleOpenAddModal}   // Passa a função de abrir adição
                 />
               </div>
             </div>
@@ -185,10 +210,19 @@ function CreateEquipment(): React.JSX.Element {
       </main>
 
       {/* --- Modals --- */}
+      
       <AddComponentModal 
         isOpen={isAddCompModalOpen} 
         onClose={() => setIsAddCompModalOpen(false)}
-        onAdd={handleAddComponent}
+        onSave={handleSaveComponent} 
+        // Preenche os dados se estiver editando
+        initialData={editingCompId 
+          ? { 
+              type: components.find(c => c.id === editingCompId)?.type || '',
+              model: components.find(c => c.id === editingCompId)?.model || ''
+            } 
+          : null
+        }
       />
 
       <ConfirmModal

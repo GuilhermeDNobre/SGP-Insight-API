@@ -129,9 +129,9 @@ export default function EquipmentDetails(): React.JSX.Element {
 
             {/* Lista de Componentes (Somente Leitura) */}
             <div>
-              <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Componentes Instalados</h3>
+              <h3 className="text-lg font-bold text-gray-800 pb-2">Componentes Instalados</h3>
               <div className="rounded-lg border border-gray-200 overflow-hidden">
-                
+          
                 <ComponentTable components={components} />
               </div>
             </div>

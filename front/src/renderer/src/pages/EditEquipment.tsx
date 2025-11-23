@@ -10,6 +10,12 @@ import { ComponentTable } from '@renderer/components/ComponentsTable'
 import ConfirmModal from '@renderer/components/ConfirmModal'
 import api from '@renderer/services/api'
 
+interface BackendComponent {
+  id: string
+  name: string
+  status: string
+}
+
 export default function EditEquipment(): React.JSX.Element {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
@@ -32,9 +38,17 @@ export default function EditEquipment(): React.JSX.Element {
     disabled: false
   })
 
+  // Lista Visual de Componentes (Mistura os do banco com os novos temporários)
   const [components, setComponents] = useState<ComponentData[]>([])
-  const [isAddCompModalOpen, setIsAddCompModalOpen] = useState(false)
-  const [compToDelete, setCompToDelete] = useState<string | null>(null)
+  
+  // Lista de IDs que foram removidos pelo usuário e precisam ser deletados no final
+  const [componentsToDelete, setComponentsToDelete] = useState<string[]>([])
+
+  // Controle de Modais
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingCompId, setEditingCompId] = useState<string | null>(null)
+  const [compIdConfirmDelete, setCompIdConfirmDelete] = useState<string | null>(null)
+
   const [isTableLoading, setIsTableLoading] = useState(false)
 
   // 1. Carregar Dados Iniciais (Departamentos + Equipamento + Componentes)
@@ -58,12 +72,6 @@ export default function EditEquipment(): React.JSX.Element {
     }
   }, [equipment])
 
-
-  interface BackendComponent {
-    id: string
-    name: string
-    status: string
-  }
   // Função auxiliar para buscar componentes do equipamento
   const loadComponents = useCallback(async () => {
     if (!id) return
@@ -96,6 +104,7 @@ export default function EditEquipment(): React.JSX.Element {
       })
       
       setComponents(formatted)
+      setComponentsToDelete([])
     } catch (error) {
       console.error('Erro ao carregar componentes', error)
     } finally {
@@ -103,63 +112,116 @@ export default function EditEquipment(): React.JSX.Element {
     }
   }, [id])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
-    const { name, value, type } = e.target
-    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    setFormData((prev) => ({ ...prev, [name]: val }))
-  }
-
-  // --- Lógica de Componentes (Live Edit) ---
-  // Diferente da criação, na edição salvamos o componente direto no banco
-
-  const handleAddComponent = async (data: { type: string; model: string }): Promise<void> => {
-    if (!id) return
-    try {
-      await api.post('/components', {
-        equipmentId: id,
-        name: `${data.type} - ${data.model}`,
-        status: 'OK'
-      })
-      await loadComponents() // Recarrega a lista
-      setIsAddCompModalOpen(false)
-    } catch (error) {
-      console.error(error)
-      alert('Erro ao adicionar componente')
+  // --- HANDLERS LOCAIS (Batch Logic) ---
+  // 1. Salvar (Adicionar ou Editar na lista local)
+  const handleSaveComponent = (data: { type: string; model: string }): void => {
+    if (editingCompId) {
+      // MODO EDIÇÃO: Atualiza na lista local
+      setComponents(prev => prev.map(c => 
+        c.id === editingCompId 
+          ? { ...c, type: data.type, model: data.model } // Atualiza campos
+          : c
+      ))
+    } else {
+      // MODO ADIÇÃO: Adiciona na lista com ID temporário
+      const newComp: ComponentData = {
+        id: `temp-${crypto.randomUUID()}`, // Marcador para sabermos que é novo
+        type: data.type,
+        model: data.model
+      }
+      setComponents(prev => [...prev, newComp])
     }
+    setIsModalOpen(false)
+    setEditingCompId(null)
   }
 
-  const handleConfirmRemoveComponent = async (): Promise<void> => {
-    if (!compToDelete || !id) return
-    try {
-      await api.delete(`/components/${compToDelete}`)
-      await loadComponents() // Recarrega a lista
-      setCompToDelete(null)
-    } catch (error) {
-      console.error(error)
-      alert('Erro ao remover componente')
+  // 2. Remover (Mover para lista de exclusão ou apenas tirar da memória)
+  const handleConfirmRemoveComponent = (): void => {
+    if (!compIdConfirmDelete) return
+
+    // Se for um item real (do banco), adiciona à lista de exclusão
+    if (!compIdConfirmDelete.startsWith('temp-')) {
+      setComponentsToDelete(prev => [...prev, compIdConfirmDelete])
     }
+
+    // Remove da lista visual imediatamente
+    setComponents(prev => prev.filter(c => c.id !== compIdConfirmDelete))
+    setCompIdConfirmDelete(null)
   }
 
-  // --- Submit do Formulário Principal ---
+  // --- SUBMIT FINAL (Envia tudo para a API) ---
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     if (!id) return
 
     try {
+      // 1. Atualiza dados do Equipamento
       await updateEquipment(id, {
         name: formData.name,
         ean: formData.ean,
         alocatedAtId: formData.alocatedAtId,
         disabled: formData.disabled
       })
-      alert('Equipamento atualizado com sucesso!')
+
+      // 2. Processa Componentes em Paralelo
+      const promises: Promise<unknown>[] = []
+
+      // A) Deletar (Desabilitar) os removidos
+      componentsToDelete.forEach(delId => {
+        // Chama o DELETE do backend (que faz soft delete/disable)
+        promises.push(api.delete(`/components/${delId}`))
+      })
+
+      // B) Criar Novos ou Atualizar Existentes
+      components.forEach(comp => {
+        const payload = {
+          equipmentId: id, // Garante o vínculo
+          name: `${comp.type} - ${comp.model}`, // Formata para o banco
+          status: 'OK'
+        }
+
+        if (comp.id.startsWith('temp-')) {
+          // É NOVO -> POST
+          promises.push(api.post('/components', payload))
+        } else {
+          // JÁ EXISTE -> PATCH (Atualiza nome/tipo se mudou)
+          // Nota: O ID enviado na URL é o ID real do componente
+          promises.push(api.patch(`/components/${comp.id}`, {
+            name: payload.name
+            // Não mandamos status aqui para não sobrescrever nada indesejado
+          }))
+        }
+      })
+
+      await Promise.all(promises)
+      
+      alert('Equipamento e componentes atualizados com sucesso!')
       navigate('/equipments')
+
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Erro ao atualizar equipamento')
+      console.error(error)
+      alert('Erro ao salvar alterações.')
     }
   }
 
-return (
+  // --- HANDLERS DE UI ---
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
+    const { name, value, type } = e.target
+    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+    setFormData((prev) => ({ ...prev, [name]: val }))
+  }
+
+  const openAddModal = (): void => {
+    setEditingCompId(null)
+    setIsModalOpen(true)
+  }
+
+  const openEditModal = (comp: ComponentData): void => {
+    setEditingCompId(comp.id)
+    setIsModalOpen(true)
+  }
+
+  return (
     <div className="w-screen h-screen bg-(--white) flex justify-center items-center relative">
       <Sidebar />
 
@@ -241,12 +303,14 @@ return (
                 )}
                 <ComponentTable 
                   components={components} 
-                  onRemove={(compId) => setCompToDelete(compId)} 
-                  onAdd={() => setIsAddCompModalOpen(true)}
+                  onRemove={(compId) => setCompIdConfirmDelete(compId)} 
+                  onEdit={openEditModal} // Passa a função de edição
+                  onAdd={openAddModal}   // (Opcional se já tem botão fora)
                 />
               </div>
             </div>
-
+            
+            {/* --- Rodapé --- */}
             <div className="flex gap-4 mt-6">
               <button
                 type="button"
@@ -269,17 +333,24 @@ return (
 
       {/* Modais */}
       <AddComponentModal 
-        isOpen={isAddCompModalOpen} 
-        onClose={() => setIsAddCompModalOpen(false)}
-        onAdd={handleAddComponent}
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveComponent}
+        initialData={editingCompId 
+          ? { 
+              type: components.find(c => c.id === editingCompId)?.type || '',
+              model: components.find(c => c.id === editingCompId)?.model || ''
+            } 
+          : null
+        }
       />
 
       <ConfirmModal
-        isOpen={!!compToDelete}
+        isOpen={!!compIdConfirmDelete}
         title="Remover Componente"
-        message="Tem certeza que deseja remover este componente? Essa ação não pode ser desfeita."
+        message="O componente será removido ao salvar as alterações do equipamento. Deseja continuar?"
         onConfirm={handleConfirmRemoveComponent}
-        onCancel={() => setCompToDelete(null)}
+        onCancel={() => setCompIdConfirmDelete(null)}
       />
     </div>
   )
