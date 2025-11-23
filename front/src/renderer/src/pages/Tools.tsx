@@ -7,6 +7,7 @@ import { EquipmentData } from '@renderer/types/equipment';
 import { MOCKED_EQUIPMENT_LIST } from '@renderer/mocks/equipment.mock';
 import { ListFilter, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import FilterModal from '@components/FilterModal';
 
 export default function Tools(): React.JSX.Element {
   const navigate = useNavigate()
@@ -14,6 +15,7 @@ export default function Tools(): React.JSX.Element {
   // Lógica de estado e filtro
   const [equipmentList, setEquipmentList] = useState<EquipmentData[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   useEffect(() => {
     // Carregar a lista de equipamentos (chamada de API simulada por enquanto)
@@ -32,6 +34,7 @@ export default function Tools(): React.JSX.Element {
   }, [searchTerm, equipmentList]);
   
   return (
+    <>
     <div className="w-screen h-screen bg-(--white) flex justify-center items-center relative py-[120px]">
       {/* Sidebar fixa */}
       <Sidebar />
@@ -65,9 +68,7 @@ export default function Tools(): React.JSX.Element {
               variant="primary"
               endIcon={<ListFilter size={16} />}
               className="h-[30px]"
-              onClick={() => {
-                // Abrir modal de filtros
-              }}
+              onClick={() => setIsFilterModalOpen(true)}
             />
           </div>
         </div>
@@ -89,5 +90,10 @@ export default function Tools(): React.JSX.Element {
         </div>
       </div>
     </div>
+    <FilterModal
+      isOpen={isFilterModalOpen}
+      onClose={() => setIsFilterModalOpen(false)}
+    />
+    </>
   )
 }
