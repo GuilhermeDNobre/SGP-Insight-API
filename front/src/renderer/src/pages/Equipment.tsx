@@ -1,7 +1,9 @@
 import { useEquipment } from '@hooks/useEquipment'
+import { useDepartment } from '@renderer/hooks/useDepartment'
 import Button from '@renderer/components/Button'
 import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
+import FilterModal, { FilterValues } from '@renderer/components/FilterModal'
 import { ListFilter, Plus, Edit, Trash2, Eye} from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -17,11 +19,24 @@ function Equipment(): React.JSX.Element {
     totalPages,    // Total de páginas
     changePage     // Função para trocar página
   } = useEquipment()
+
+  const { departments, loadDepartments } = useDepartment() // Para preencher o select do modal de filtragem
+
   const [searchTerm, setSearchTerm] = useState<string>('')
 
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  const [activeFilters, setActiveFilters] = useState<FilterValues>({
+    departmentId: '',
+    onlyActive: false
+  })
+
   useEffect(() => {
-    void loadEquipments(page, searchTerm)
-  }, [loadEquipments, page])
+    void loadDepartments()
+  }, []) // eslint-disable-line
+
+  useEffect(() => {
+    void loadEquipments(page, searchTerm, activeFilters)
+  }, [loadEquipments, page, activeFilters])
 
   const handleDelete = async (id: string, name: string): Promise<void> => {
     if (window.confirm(`Tem certeza que deseja deletar o equipamento "${name}"?`)) {
@@ -37,7 +52,21 @@ function Equipment(): React.JSX.Element {
 
   const handleSearch = (): void => {
     // Volta para a página 1 sempre que buscar algo novo
-    void loadEquipments(1, searchTerm)
+    void loadEquipments(1, searchTerm, activeFilters)
+  }
+
+  // --- Handlers do Modal ---
+
+  const handleApplyFilters = (filters: FilterValues) => {
+    setActiveFilters(filters)
+    // Volta para página 1 ao filtrar
+    changePage(1) 
+  }
+
+  const handleClearFilters = () => {
+    const emptyFilters = { departmentId: '', onlyActive: false }
+    setActiveFilters(emptyFilters)
+    changePage(1)
   }
 
   return (
@@ -75,9 +104,7 @@ function Equipment(): React.JSX.Element {
               variant="primary"
               endIcon={<ListFilter size={16} />}
               className="h-[30px]"
-              onClick={() => {
-                // TODO: Implementar modal de filtros
-              }}
+              onClick={() => setIsFilterModalOpen(true)}
             />
           </div>
         </div>
@@ -206,6 +233,15 @@ function Equipment(): React.JSX.Element {
             </div>
           </div>
         </div>
+
+        <FilterModal 
+          isOpen={isFilterModalOpen} 
+          onClose={() => setIsFilterModalOpen(false)}
+          departments={departments} // Passando a lista
+          currentFilters={activeFilters} // Passando estado atual
+          onApply={handleApplyFilters}
+          onClear={handleClearFilters}
+        />
       </div>
     </div>
   )

@@ -45,7 +45,11 @@ interface UseEquipmentReturn {
   isLoading: boolean
   errors: FormErrors
   setErrors: (errors: FormErrors) => void
-  loadEquipments: (page?: number, search?: string) => Promise<void>
+  loadEquipments: (
+    page?: number,
+    search?: string,
+    filters?: { departmentId?: string, onlyActive?: boolean }
+  ) => Promise<void>
   loadEquipmentById: (id: string) => Promise<void>
   createEquipment: (data: CreateEquipmentInput) => Promise<EquipmentData>
   updateEquipment: (id: string, data: UpdateEquipmentInput) => Promise<void>
@@ -66,7 +70,11 @@ export function useEquipment(): UseEquipmentReturn {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
-  const loadEquipments = useCallback(async (pageToLoad = 1, search = ''): Promise<void> => {
+  const loadEquipments = useCallback(async (
+    pageToLoad = 1,
+    search = '',
+    filters = { departmentId: '', onlyActive: false }
+  ): Promise<void> => {
     try {
       setIsLoading(true)
 
@@ -74,7 +82,13 @@ export function useEquipment(): UseEquipmentReturn {
       if (search) {
         url += `&search=${encodeURIComponent(search)}`
       }
-
+      if (filters.departmentId) {
+        url += `&alocatedAtId=${filters.departmentId}`
+      }
+      if (filters.onlyActive) {
+        url += `&onlyActive=true`
+      }
+      
       const response = await api.get(url);      // API returns paginated response: { data: [...], meta: {...} }
       const data =
         response.data?.data && Array.isArray(response.data.data) ? response.data.data : []
