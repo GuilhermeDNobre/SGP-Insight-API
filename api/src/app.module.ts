@@ -6,6 +6,9 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { DepartmentModule } from './department/department.module';
 import { EquipmentModule } from './equipment/equipment.module';
 import { EquipmentMoveModule } from './equipment-move/equipment-move.module';
+import { ComponentsModule } from './components/components.module';
+import { EmailService } from './email/email.service';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -15,9 +18,11 @@ import { EquipmentMoveModule } from './equipment-move/equipment-move.module';
     AuthModule,
     DepartmentModule,
     EquipmentModule,
-    EquipmentMoveModule
+    EquipmentMoveModule,
+    ComponentsModule,
+    EmailModule
   ],
   controllers: [],
-  providers: [],
+  providers: [EmailService],
 })
 export class AppModule {}

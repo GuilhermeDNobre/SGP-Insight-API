@@ -1,23 +1,38 @@
 import { useDepartment } from '@hooks/useDepartment'
+import Button from '@renderer/components/Button'
+import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
 import { Edit, Plus, Trash2 } from 'lucide-react'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 function Departments(): React.JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
+
+  const [searchTerm, setSearchTerm] = useState<string>('')
   const { departments, isLoading, loadDepartments, deleteDepartment } = useDepartment()
 
   useEffect(() => {
     void loadDepartments()
   }, [location.pathname, loadDepartments])
 
+  const filteredDepartment = useMemo(() => {
+      const term = searchTerm.toLowerCase().trim()
+  
+      return departments.filter((department) => {
+        const nameMatch = department.name.toLowerCase().includes(term)
+        const idMatch = department.id.toLowerCase().includes(term)
+        return nameMatch || idMatch
+      })
+    }, [searchTerm, departments])
+
   const handleDelete = async (id: string, name: string): Promise<void> => {
     if (window.confirm(`Tem certeza que deseja deletar o departamento "${name}"?`)) {
       try {
         await deleteDepartment(id)
         alert('Departamento deletado com sucesso!')
+        window.focus()
       } catch (error) {
         alert(error instanceof Error ? error.message : 'Erro ao deletar departamento')
       }
@@ -25,37 +40,51 @@ function Departments(): React.JSX.Element {
   }
 
   return (
-    <div className="flex w-screen h-screen bg-white">
+    <div className="w-screen h-screen bg-white flex justify-center items-center relative py-[120px]">
       <Sidebar />
 
-      <main className="grow flex flex-col p-8 overflow-y-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Departamentos</h1>
-          <button
-            onClick={() => navigate('/department-create')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-          >
-            <Plus size={20} />
-            Novo Departamento
-          </button>
+      <main className="flex w-full max-w-[1400px] h-screen overflow-hidden py-20 px-8 flex-col items-start gap-2.5">
+        <div className="flex flex-col w-full gap-2.5 shrink-0 top-[120px] bg-white pb-4 z-10">
+          <h1 className="font-bold text-2xl leading-normal">Departamentos</h1>
+            <div className="flex flex-row gap-2.5 w-full">
+              <Input
+                type="search"
+                labelVariant="default"
+                placeholder="Digite o nome ou ID do departamento"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-[30px] flex-1"
+              />
+              <Button
+                label="Novo Departamento" 
+                variant="secondary"
+                endIcon={<Plus size={16} />}
+                onClick={() => navigate('/department-create')}
+                className="h-[30px] w-[196px] whitespace-nowrap"
+              />
+          </div>
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center items-center h-96">
+          <div className="flex justify-center items-center h-96 w-full">
             <p className="text-gray-500">Carregando departamentos...</p>
           </div>
         ) : departments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-96 gap-4">
+          <div className="flex flex-col items-center justify-center h-96 gap-4 w-full">
             <p className="text-gray-500 text-lg">Nenhum departamento cadastrado</p>
-            <button
+            <Button
+              label="Criar Primeiro Departamento"
+              variant="primary"
               onClick={() => navigate('/department-create')}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-            >
-              Criar Primeiro Departamento
-            </button>
+              className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition'
+            />
+          </div>
+        ) : filteredDepartment.length === 0 ? (
+          <div className="flex justify-center items-center h-96 w-full">
+            <p className="text-gray-500">Nenhum departamento encontrado</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg shadow-md">
+          <div className="overflow-x-auto rounded-lg shadow-md w-full">
             <table className="w-full border-collapse">
               <thead className="bg-gray-100">
                 <tr>
@@ -77,7 +106,7 @@ function Departments(): React.JSX.Element {
                 </tr>
               </thead>
               <tbody>
-                {departments.map((department) => (
+                {filteredDepartment.map((department) => (
                   <tr key={department.id} className="hover:bg-gray-50 transition border-b">
                     <td className="px-6 py-4 text-sm text-gray-800 font-semibold">
                       {department.name}

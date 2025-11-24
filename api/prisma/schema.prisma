@@ -45,6 +45,8 @@ model Equipment {
   alocatedAt   Department @relation(fields: [alocatedAtId], references: [id])
 
   moves EquipmentMove[]
+
+  components Component[]
 }
 
 model EquipmentMove {
@@ -57,6 +59,22 @@ model EquipmentMove {
   equipment                  Equipment  @relation(fields: [equipmentId], references: [id])
   previouslyAlocatedAt       Department @relation("PreviousDepartment", fields: [previouslyAlocatedAtId], references: [id])
   newlyAlocatedAt            Department @relation("NewDepartment", fields: [newlyAlocatedAtId], references: [id])
+}
+
+model Component {
+  id            String   @id @default(uuid())
+  equipmentId   String
+  name          String
+  status        ComponentStatus @default(OK)
+  createdAt     DateTime @default(now())
+  discardedAt   DateTime? 
+  equipment     Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+}
+
+enum ComponentStatus {
+  OK
+  EM_MANUTENCAO
+  DESABILITADO
 }
 
 enum Role {

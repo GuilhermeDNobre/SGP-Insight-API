@@ -1,20 +1,34 @@
-import { useDepartment } from '@hooks/useDepartment'
-import { useEquipment } from '@hooks/useEquipment'
-import Input from '@renderer/components/Input'
-import Sidebar from '@renderer/components/Sidebar'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDepartment } from '@hooks/useDepartment'
+import { useEquipment } from '@hooks/useEquipment'
+import { ComponentData } from '../types/equipment'
+import Input from '@renderer/components/Input'
+import Sidebar from '@renderer/components/Sidebar'
+import AddComponentModal from '@renderer/components/AddComponentModal'
+import { ComponentTable } from '@renderer/components/ComponentsTable'
+import ConfirmModal from '@renderer/components/ConfirmModal'
+import api from '@renderer/services/api'
 
 function CreateEquipment(): React.JSX.Element {
   const navigate = useNavigate()
+
   const { createEquipment, isLoading, errors } = useEquipment()
   const { departments, loadDepartments } = useDepartment()
+
   const [formData, setFormData] = useState({
     name: '',
     ean: '',
     alocatedAtId: '',
     disabled: false
   })
+
+  const [components, setComponents] = useState<ComponentData[]>([])
+
+  const [editingCompId, setEditingCompId] = useState<string | null>(null)
+
+  const [isAddCompModalOpen, setIsAddCompModalOpen] = useState(false)
+  const [compToDelete, setCompToDelete] = useState<string | null>(null)
 
   useEffect(() => {
     void loadDepartments()
@@ -30,13 +44,71 @@ function CreateEquipment(): React.JSX.Element {
     }))
   }
 
+  const handleSaveComponent = (data: { type: string; model: string }): void => {
+    if (editingCompId) {
+      setComponents((prev) => 
+        prev.map((comp) => 
+          comp.id === editingCompId 
+            ? { ...comp, type: data.type, model: data.model } // Atualiza os dados
+            : comp
+        )
+      )
+    } else {
+      const newComp: ComponentData = {
+        id: crypto.randomUUID(),
+        type: data.type,
+        model: data.model
+      }
+      setComponents((prev) => [...prev, newComp])
+    }
+    
+    // Fecha e limpa
+    setIsAddCompModalOpen(false)
+    setEditingCompId(null)
+  }
+
+  const handleOpenAddModal = (): void => {
+    setEditingCompId(null) // Garante que não estamos editando ninguém
+    setIsAddCompModalOpen(true)
+  }
+
+  const handleOpenEditModal = (comp: ComponentData): void => {
+    setEditingCompId(comp.id) // Marca quem vamos editar
+    setIsAddCompModalOpen(true)
+  }
+
+  const handleConfirmRemoveComponent = (): void => {
+    if (compToDelete) {
+      setComponents((prev) => prev.filter((c) => c.id !== compToDelete))
+      setCompToDelete(null)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
+
     try {
-      const { disabled, ...equipmentData } = formData
-      await createEquipment(equipmentData)
+      // 1. Cria o Equipamento (sem componentes)
+      const newEquipment = await createEquipment({
+        name: formData.name,
+        ean: formData.ean,
+        alocatedAtId: formData.alocatedAtId
+      })
+
+      // 2. Se tiver componentes, salva um por um
+      if (components.length > 0 && newEquipment?.id) {
+        const promises = components.map(comp => {
+          return api.post('/components', {
+            equipmentId: newEquipment.id,
+            name: `${comp.type} - ${comp.model}`, 
+            status: 'OK'
+          })
+        })
+        
+        await Promise.all(promises)
+      }
+
       alert('Equipamento criado com sucesso!')
-      // Navigate will trigger Equipment page to load fresh data
       navigate('/equipments')
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Erro ao criar equipamento')
@@ -44,74 +116,77 @@ function CreateEquipment(): React.JSX.Element {
   }
 
   return (
-    <div className="flex w-screen h-screen bg-white">
+    <div className="w-screen h-screen bg-(--white) flex justify-center items-center relative">
       <Sidebar />
 
-      <main className="grow flex flex-col justify-center items-center p-8 overflow-y-auto">
-        <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-lg">
+      <main className="flex w-[1200px] pb-[21px] overflow-hidden flex-col items-center gap-2.5">
+        <div className="flex w-full max-w-4xl shrink-0 flex-col gap-6 rounded-lg bg-white p-8 shadow-lg">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Novo Equipamento</h2>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Input
-              label="Nome do Equipamento"
-              type="text"
-              placeholder="Ex: Notebook Dell"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              error={errors.name}
-              labelVariant="default"
-            />
-
-            <Input
-              label="EAN"
-              type="text"
-              placeholder="Ex: 1234567890123"
-              name="ean"
-              value={formData.ean}
-              onChange={handleChange}
-              error={errors.ean}
-              labelVariant="default"
-            />
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-gray-700">Departamento</label>
-              <select
-                name="alocatedAtId"
-                value={formData.alocatedAtId}
+            {/* --- Section 1: Basic Info --- */}
+            <div className="flex flex-col gap-4">
+              <Input
+                label="Nome do Equipamento"
+                type="text"
+                placeholder="Ex: Notebook Dell"
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
-                className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.alocatedAtId ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value="">Selecione um departamento</option>
-                {departments.map((dept) => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </option>
-                ))}
-              </select>
-              {errors.alocatedAtId && (
-                <span className="text-sm text-red-500">{errors.alocatedAtId}</span>
-              )}
+                error={errors.name}
+                labelVariant="default"
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="EAN"
+                  type="text"
+                  placeholder="Ex: 1234567890123"
+                  name="ean"
+                  value={formData.ean}
+                  onChange={handleChange}
+                  error={errors.ean}
+                  labelVariant="default"
+                />
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-black">Departamento</label>
+                  <select
+                    name="alocatedAtId"
+                    value={formData.alocatedAtId}
+                    onChange={handleChange}
+                    className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                      errors.alocatedAtId ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  >
+                    <option value="">Selecione um departamento</option>
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.alocatedAtId && (
+                    <span className="text-sm text-red-500">{errors.alocatedAtId}</span>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-gray-700">Status</label>
-              <select
-                name="disabled"
-                value={formData.disabled ? 'desativado' : 'ativo'}
-                onChange={(e) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    disabled: e.target.value === 'desativado'
-                  }))
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="ativo">Ativo</option>
-                <option value="desativado">Desativado</option>
-              </select>
+            {/* --- Section 2: Components Management --- */}
+            <div className="border-t border-gray-200 pt-4 flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-black">Componentes Internos</label>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50">
+                {/* MUDANÇA 4: Passando as novas props para a Tabela */}
+                <ComponentTable 
+                  components={components} 
+                  onRemove={(id) => setCompToDelete(id)} 
+                  onEdit={handleOpenEditModal} // Passa a função de abrir edição
+                  onAdd={handleOpenAddModal}   // Passa a função de abrir adição
+                />
+              </div>
             </div>
 
             <div className="flex gap-4 mt-6">
@@ -133,6 +208,30 @@ function CreateEquipment(): React.JSX.Element {
           </form>
         </div>
       </main>
+
+      {/* --- Modals --- */}
+      
+      <AddComponentModal 
+        isOpen={isAddCompModalOpen} 
+        onClose={() => setIsAddCompModalOpen(false)}
+        onSave={handleSaveComponent} 
+        // Preenche os dados se estiver editando
+        initialData={editingCompId 
+          ? { 
+              type: components.find(c => c.id === editingCompId)?.type || '',
+              model: components.find(c => c.id === editingCompId)?.model || ''
+            } 
+          : null
+        }
+      />
+
+      <ConfirmModal
+        isOpen={!!compToDelete}
+        title="Remover Componente"
+        message="Tem certeza que deseja remover este componente da lista?"
+        onConfirm={handleConfirmRemoveComponent}
+        onCancel={() => setCompToDelete(null)}
+      />
     </div>
   )
 }
