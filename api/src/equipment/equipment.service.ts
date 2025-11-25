@@ -13,6 +13,7 @@ interface EquipmentFilters {
   onlyActive?: boolean;
   orderBy?: string;
   sort?: 'asc' | 'desc';
+  search?: string;
 }
 
 function normalizeString(str: string): string {
@@ -69,6 +70,7 @@ export class EquipmentService {
       onlyActive,
       orderBy = 'createdAt',
       sort = 'desc',
+      search,
     } = filters
 
     const where: any = {
@@ -78,6 +80,18 @@ export class EquipmentService {
       disabled: onlyActive ? false : undefined,
     }
     
+    if (search) {
+      const normalizedSearch = normalizeString(search);
+      
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { ean: { contains: search, mode: 'insensitive' } },
+      ];
+    } else {
+      if (name) where.name = { contains: name, mode: 'insensitive' };
+      if (ean) where.ean = { contains: ean, mode: 'insensitive' };
+    }
+
     const skip = (page - 1) * limit
 
     const equipments = await this.prisma.equipment.findMany({
@@ -98,7 +112,7 @@ export class EquipmentService {
         total,
         page,
         lastPage: Math.ceil(total / limit),
-        filters: {name, ean, alocatedAtId, onlyActive},
+        filters: {name, ean, alocatedAtId, onlyActive, search},
         orderBy,
         sort,
       },

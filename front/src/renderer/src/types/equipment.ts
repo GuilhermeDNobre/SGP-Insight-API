@@ -1,7 +1,7 @@
 export interface ComponentData {
   id: string;
   type: string; // Ex: "Processador"
-  name: string; // Ex: "Intel Core i7-12700K"
+  model: string; // Ex: "Intel Core i7-12700K"
 }
 
 export interface EquipmentData {

@@ -1,15 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UsersService } from "src/users/users.service";
 import { LoginInfoDto } from "./dto/login-dto";
 import { CreateUserDto } from "src/users/dto/create-user-dto";
+import { EmailService } from "src/email/email.service";
+import { PrismaService } from "src/prisma/prisma.service";
+import bcrypt from "node_modules/bcryptjs";
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private usersService: UsersService,
+    private emailService: EmailService,
+    private prisma: PrismaService
   ) {}
   
   async validateUser({ email, password }: LoginInfoDto) {
@@ -28,4 +33,46 @@ export class AuthService {
     if (!user) return null;
     return this.jwtService.sign(user);
   }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      throw new NotFoundException('Email não encontrado');
+    }
+
+    const token = this.jwtService.sign(
+      { sub: user.id },
+      { expiresIn: '15m' }
+    );
+
+    const resetLink = `https://sgp-frontend/reset-password?token=${token}`;
+
+    const preview = await this.emailService.sendForgotPasswordEmail(
+      user.email,
+      resetLink,
+    );
+
+    return {
+      message: 'Email enviado!'
+    };
+  }
+
+  async resetPassword(token: string, newPassword: string, confirmPassword: string) {
+    if (newPassword !== confirmPassword) {
+      throw new BadRequestException('Senhas não conferem');
+    }
+
+    const payload = this.jwtService.verify(token);
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: payload.sub },
+      data: { password: hashed },
+    });
+
+    return { message: 'Senha alterada com sucesso' };
+  }
+
 } 
