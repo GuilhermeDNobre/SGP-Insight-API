@@ -1,0 +1,77 @@
+:root {
+  /* === Cores da marca (abreviações para Tailwind-friendly) === */
+  --pri: #201f38; /* primary */
+  --sec: #323054; /* secondary */
+  --ter: #6d71a8; /* tertiary */
+  --white: #ffffff; /* white */
+  --atencio: #eeaf57; /* atenção */
+  --sucess: #4bb06c; /* sucesso */
+  --erro: #b0504b; /* erro */
+  --black: #040404; /* black */
+  --gray: #4b4b4b; /* gray */
+  --gray-light: #efefef; /* gray light */
+
+  /* === Textos === */
+  --txt: var(--black); /* primary */
+  --txt2: var(--gray); /* secundário */
+  --txt-muted: var(--gray-light); /* muted */
+
+  /* === Backgrounds === */
+  --bg: var(--white); /* main */
+  --bg-soft: var(--gray-light);
+  --bg-muted: var(--gray);
+
+  /* === Botões === */
+  --btn-alt-border: var(--black);
+  --btn-alt-text: var(--txt-muted);
+  --btn-alt-bg: var(--sec);
+  --btn-alt-hover-border: transparent;
+  --btn-alt-hover-text: var(--txt);
+  --btn-alt-hover-bg: var(--ter);
+}
+
+/* === Reset e tipografia === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
+ul {
+  list-style: none;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--txt);
+  background: var(--bg);
+  line-height: 1.6;
+  font-family: 'Figtree', sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* === Tipografia base === */
+h1 {
+  font-weight: 700;
+  font-size: 32px;
+}
+h2 {
+  font-weight: 600;
+  font-size: 24px;
+}
+h3 {
+  font-weight: 500;
+  font-size: 20px;
+}
+p.large {
+  font-weight: 400;
+  font-size: 16px;
+}
+p.small {
+  font-weight: 400;
+  font-size: 14px;
+}
