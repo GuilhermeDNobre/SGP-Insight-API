@@ -29,9 +29,9 @@ model Department {
   responsableName  String
   responsableEmail String
 
-  equipments Equipment[]
-  previousMoves  EquipmentMove[]   @relation("PreviousDepartment")
-  newMoves       EquipmentMove[]   @relation("NewDepartment")
+  equipments    Equipment[]
+  previousMoves EquipmentMove[] @relation("PreviousDepartment")
+  newMoves      EquipmentMove[] @relation("NewDepartment")
 }
 
 model Equipment {
@@ -47,28 +47,32 @@ model Equipment {
   moves EquipmentMove[]
 
   components Component[]
+
+  maintenances Maintenance[]
 }
 
 model EquipmentMove {
-  id                         String     @id @default(uuid())
-  equipmentId                String
-  previouslyAlocatedAtId     String
-  newlyAlocatedAtId          String
-  createdAt                  DateTime   @default(now())
+  id                     String   @id @default(uuid())
+  equipmentId            String
+  previouslyAlocatedAtId String
+  newlyAlocatedAtId      String
+  createdAt              DateTime @default(now())
 
-  equipment                  Equipment  @relation(fields: [equipmentId], references: [id])
-  previouslyAlocatedAt       Department @relation("PreviousDepartment", fields: [previouslyAlocatedAtId], references: [id])
-  newlyAlocatedAt            Department @relation("NewDepartment", fields: [newlyAlocatedAtId], references: [id])
+  equipment            Equipment  @relation(fields: [equipmentId], references: [id])
+  previouslyAlocatedAt Department @relation("PreviousDepartment", fields: [previouslyAlocatedAtId], references: [id])
+  newlyAlocatedAt      Department @relation("NewDepartment", fields: [newlyAlocatedAtId], references: [id])
 }
 
 model Component {
-  id            String   @id @default(uuid())
-  equipmentId   String
-  name          String
-  status        ComponentStatus @default(OK)
-  createdAt     DateTime @default(now())
-  discardedAt   DateTime? 
-  equipment     Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  id          String          @id @default(uuid())
+  equipmentId String
+  name        String
+  status      ComponentStatus @default(OK)
+  createdAt   DateTime        @default(now())
+  discardedAt DateTime?
+  equipment   Equipment       @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  maintenances MaintenanceComponent[]
 }
 
 enum ComponentStatus {
@@ -79,4 +83,35 @@ enum ComponentStatus {
 enum Role {
   MANAGER
   ADMIN
+}
+
+model Maintenance {
+  id          String            @id @default(uuid())
+  technician  String
+  contact     String?
+  description String
+  createdAt   DateTime          @default(now())
+  finishedAt  DateTime?
+  status      MaintenanceStatus @default(ABERTA)
+
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  components MaintenanceComponent[]
+}
+
+enum MaintenanceStatus {
+  ABERTA
+  EM_ANDAMENTO
+  TERMINADA
+}
+
+model MaintenanceComponent {
+  maintenanceId String
+  componentId   String
+
+  maintenance Maintenance @relation(fields: [maintenanceId], references: [id])
+  component   Component   @relation(fields: [componentId], references: [id])
+
+  @@id([maintenanceId, componentId])
 }
