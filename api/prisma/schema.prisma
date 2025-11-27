@@ -78,6 +78,7 @@ model Component {
 enum ComponentStatus {
   OK
   EM_MANUTENCAO
+  DESABILITADO
 }
 
 enum Role {

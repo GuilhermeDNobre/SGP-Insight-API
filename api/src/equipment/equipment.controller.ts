@@ -31,8 +31,9 @@ export class EquipmentController {
   @ApiQuery({ name: 'ean', required: false, type: String })
   @ApiQuery({ name: 'alocatedAtId', required: false, type: String })
   @ApiQuery({ name: 'onlyActive', required: false, type: Boolean })
+  @ApiQuery({ name: 'search', required: false, type: Boolean })
   findAll(@Query() query: any) {
-    const { page, limit, name, ean, alocatedAtId, onlyActive } = query;
+    const { page, limit, name, ean, alocatedAtId, onlyActive, search } = query;
 
     return this.equipmentService.findAll({
       page: Number(page) || 1,
@@ -41,6 +42,7 @@ export class EquipmentController {
       ean: ean || undefined,
       alocatedAtId: alocatedAtId || undefined,
       onlyActive: onlyActive === 'true' || false,
+      search: search || undefined,
     });
   }
 

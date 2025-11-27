@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateComponentDto } from './dto/create-component.dto';
 import { UpdateComponentDto } from './dto/update-component.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ComponentsService {
-  prisma: any;
+  constructor(private readonly prisma: PrismaService) {}
+
   async create(dto: CreateComponentDto) {
     const equipment = await this.prisma.equipment.findUnique({
       where: { id: dto.equipmentId },
@@ -18,7 +20,9 @@ export class ComponentsService {
       data: {
         name: dto.name,
         status: dto.status,
-        equipmentId: dto.equipmentId,
+        equipment: {
+          connect: { id: dto.equipmentId }
+        },
       },
     });
   }
