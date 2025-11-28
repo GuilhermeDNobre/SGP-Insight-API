@@ -3,6 +3,7 @@ import { CreateMaintenanceDto } from './dto/create-maintenance.dto';
 import { MaintenanceStatus, UpdateMaintenanceDto } from './dto/update-maintenance.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MaintenanceFiltersDto } from './dto/maintenance-filters.dto';
+import { take } from 'rxjs';
 
 @Injectable()
 export class MaintenanceService {
@@ -19,7 +20,6 @@ export class MaintenanceService {
       throw new NotFoundException('Equipment not found');
     }
     
-    //verifica se componente é do equipamento (tab tab)
     if (dto.componentIds?.length) {
       const equipmentComponents = await this.prisma.component.findMany({
         where: { equipmentId: dto.equipmentId },
@@ -60,9 +60,37 @@ export class MaintenanceService {
     });
   }
 
-  //falta paginar, faço isso depois
   async findAll(query: MaintenanceFiltersDto) {
-    return `This action returns all maintenance`;
+    const page = query.page ?? 1
+    const take = query.limit ?? 10
+    const skip = (page-1) *take
+
+    const where: any = {
+      equipmentId: query.equipmentId,
+      status: query.status,
+      resolved: query.onlyOpen ? false : undefined,
+    }
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.maintenance.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: { components: { include: { component: true } } },
+      }),
+      this.prisma.maintenance.count({ where }),
+    ]);
+
+    return {
+      data: items,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / take),
+      },
+    };
+
   }
 
   async findOne(id: string) {
