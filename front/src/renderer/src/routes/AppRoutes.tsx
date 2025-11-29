@@ -1,4 +1,3 @@
-import AddTool from '@pages/AddTool'
 import Alerts from '@pages/Alerts'
 import CreateDepartment from '@pages/CreateDepartment'
 import CreateEquipment from '@pages/CreateEquipment'
@@ -14,7 +13,6 @@ import Login from '@pages/Login'
 import Maintenance from '@pages/Maintenance'
 import Profile from '@pages/Profile'
 import Register from '@pages/Register'
-import Tools from '@pages/Tools'
 import { Route, Routes } from 'react-router-dom'
 
 export default function AppRoutes(): React.JSX.Element {
@@ -27,8 +25,6 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/profile" element={<Profile />} />
       <Route path="/profile-edit" element={<EditProfile />} />
       <Route path="/profile-delete" element={<DeleteProfile />} />
-      <Route path="/tools" element={<Tools />} />
-      <Route path="/addTool" element={<AddTool />} />
       <Route path="/maintenance" element={<Maintenance />} />
       <Route path="/alerts" element={<Alerts />} />
 

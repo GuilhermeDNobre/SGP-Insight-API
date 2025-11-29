@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSnackbar } from '@renderer/context/SnackbarContext'
 import { useDepartment } from '@hooks/useDepartment'
 import { useEquipment } from '@hooks/useEquipment'
 import { ComponentData } from '../types/equipment'
@@ -12,6 +13,7 @@ import api from '@renderer/services/api'
 
 function CreateEquipment(): React.JSX.Element {
   const navigate = useNavigate()
+  const { showSnackbar } = useSnackbar()
 
   const { createEquipment, isLoading, errors } = useEquipment()
   const { departments, loadDepartments } = useDepartment()
@@ -108,10 +110,11 @@ function CreateEquipment(): React.JSX.Element {
         await Promise.all(promises)
       }
 
-      alert('Equipamento criado com sucesso!')
-      navigate('/equipments')
+      showSnackbar('Equipamento criado com sucesso!', 'success')
+      setTimeout(() => navigate('/equipments'), 1500)
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Erro ao criar equipamento')
+      console.error('Erro:', error)
+      showSnackbar(`Erro ao criar equipamento. "${error}" `, 'error')
     }
   }
 
@@ -231,6 +234,9 @@ function CreateEquipment(): React.JSX.Element {
         message="Tem certeza que deseja remover este componente da lista?"
         onConfirm={handleConfirmRemoveComponent}
         onCancel={() => setCompToDelete(null)}
+        variant="danger"
+        confirmText="Excluir"
+        closeOnOverlayClick={false}
       />
     </div>
   )
