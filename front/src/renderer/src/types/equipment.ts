@@ -11,4 +11,5 @@ export interface EquipmentData {
   status: 'ativo' | 'disponivel' | 'manutencao' | 'indisponivel';
   location: string; // Nome do departamento (Setor X)
   components: ComponentData[];
+  equipmentCount?: number;
 }

@@ -8,6 +8,7 @@ import EditEquipment from '@pages/EditEquipment'
 import EditProfile from '@pages/EditProfile'
 import Equipment from '@pages/Equipment'
 import EquipmentDetails from '@pages/EquipmentView'
+import DepartmentDetails from '@pages/DepartmentView'
 import Home from '@pages/Home'
 import Login from '@pages/Login'
 import Maintenance from '@pages/Maintenance'
@@ -24,7 +25,6 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/" element={<Login />} />
       <Route path="/Register" element={<Register />} />
       <Route path="/Home" element={<Home />} />
-      <Route path="/addTool" element={<AddTool />} />
       <Route path="/maintenance" element={<Maintenance />} />
       <Route path="/alerts" element={<Alerts />} />
 
@@ -38,6 +38,7 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/departments" element={<Departments />} />
       <Route path="/department-create" element={<CreateDepartment />} />
       <Route path="/department-edit/:id" element={<EditDepartment />} />
+      <Route path="/department-details/:id" element={<DepartmentDetails />} />
 
       {/* Perfil e Usuários */}
       <Route path="/profile" element={<Profile />} />
