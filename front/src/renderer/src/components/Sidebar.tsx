@@ -12,10 +12,17 @@ import {
 } from 'lucide-react'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ConfirmModal from '@components/ConfirmModal'
 
 export default function Sidebar(): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false)
   const navigate = useNavigate()
+
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false)
+  const handleConfirmExit = (): void => {
+    setIsExitModalOpen(false)
+    navigate('/') // volta para a tela de login
+  }
 
   return (
     <>
@@ -99,12 +106,21 @@ export default function Sidebar(): React.JSX.Element {
             icon={<LogOut size={25} />}
             label="Sair"
             onClick={() => {
-              setIsOpen(false) // fecha a sidebar
-              navigate('/') // volta para a tela de login
+              setIsExitModalOpen(true)
             }}
           />
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isExitModalOpen}
+        title="Confirmar Saída"
+        message="Tem certeza que deseja sair do sistema?"
+        onConfirm={handleConfirmExit}
+        onCancel={() => setIsExitModalOpen(false)}
+        variant="danger"
+        confirmText="Sair"
+      />
     </>
   )
 }

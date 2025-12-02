@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useSnackbar } from '@renderer/context/SnackbarContext'
 import { useDepartment } from '@hooks/useDepartment'
 import { useEquipment } from '@hooks/useEquipment'
 import { ComponentData } from '../types/equipment'
@@ -18,6 +19,7 @@ interface BackendComponent {
 
 export default function EditEquipment(): React.JSX.Element {
   const navigate = useNavigate()
+  const { showSnackbar } = useSnackbar()
   const { id } = useParams<{ id: string }>()
 
   // Hooks
@@ -195,12 +197,12 @@ export default function EditEquipment(): React.JSX.Element {
 
       await Promise.all(promises)
       
-      alert('Equipamento e componentes atualizados com sucesso!')
-      navigate('/equipments')
+      showSnackbar('Equipamento criado com sucesso!', 'success')
+      setTimeout(() => navigate('/equipments'), 1500)
 
     } catch (error) {
       console.error(error)
-      alert('Erro ao salvar alterações.')
+      showSnackbar(`Erro ao atualizar equipamento. "${error}" `, 'error')
     }
   }
 
@@ -351,6 +353,9 @@ export default function EditEquipment(): React.JSX.Element {
         message="O componente será removido ao salvar as alterações do equipamento. Deseja continuar?"
         onConfirm={handleConfirmRemoveComponent}
         onCancel={() => setCompIdConfirmDelete(null)}
+        variant="danger"
+        confirmText="Remover"
+        closeOnOverlayClick={false}
       />
     </div>
   )

@@ -3,9 +3,11 @@ import Sidebar from '@components/Sidebar'
 import { useProfile } from '@hooks/useProfile'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSnackbar } from '@renderer/context/SnackbarContext'
 
 export default function EditProfile(): React.JSX.Element {
   const navigate = useNavigate()
+  const { showSnackbar } = useSnackbar()
   const {
     userData,
     setUserData,
@@ -26,11 +28,11 @@ export default function EditProfile(): React.JSX.Element {
 
     try {
       await updateProfile(newProfilePicture)
-      alert('Perfil atualizado com sucesso!')
-      navigate('/profile')
+      showSnackbar('Perfil atualizado com sucesso!', 'success')
+      setTimeout(() => navigate('/profile'), 1500)
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error)
-      alert(error instanceof Error ? error.message : 'Erro ao atualizar perfil')
+      showSnackbar('Erro ao atualizar perfil. Por favor, tente novamente.', 'error')
     }
   }
 

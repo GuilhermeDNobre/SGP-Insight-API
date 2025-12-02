@@ -2,13 +2,23 @@ import { useDepartment } from '@hooks/useDepartment'
 import Button from '@renderer/components/Button'
 import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
+import ConfirmModal from '@renderer/components/ConfirmModal'
 import { Edit, Plus, Trash2 } from 'lucide-react'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useSnackbar } from '@renderer/context/SnackbarContext'
 
 function Departments(): React.JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
+  const { showSnackbar } = useSnackbar()
+  
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [departmentToDelete, setDepartmentToDelete] = useState<{ id: string, name: string } | null>(null)
+  const handleDeleteClick = (id: string, name: string): void => {
+    setDepartmentToDelete({ id, name })
+    setIsDeleteModalOpen(true)
+  }             
 
   const [searchTerm, setSearchTerm] = useState<string>('')
   const { departments, isLoading, loadDepartments, deleteDepartment } = useDepartment()
@@ -27,15 +37,19 @@ function Departments(): React.JSX.Element {
       })
     }, [searchTerm, departments])
 
-  const handleDelete = async (id: string, name: string): Promise<void> => {
-    if (window.confirm(`Tem certeza que deseja deletar o departamento "${name}"?`)) {
-      try {
-        await deleteDepartment(id)
-        alert('Departamento deletado com sucesso!')
-        window.focus()
-      } catch (error) {
-        alert(error instanceof Error ? error.message : 'Erro ao deletar departamento')
-      }
+  const handleDelete = async (): Promise<void> => {
+    if (!departmentToDelete) return
+    
+    try {
+      await deleteDepartment(departmentToDelete.id)
+      showSnackbar('Departamento deletado com sucesso!', 'success')
+      await loadDepartments()
+    } catch (error) {
+      console.error('Erro ao deletar departamento:', error)
+      showSnackbar(`Erro ao deletar departamento. "${error}" `, 'error')
+    } finally {
+      setIsDeleteModalOpen(false)
+      setDepartmentToDelete(null)
     }
   }
 
@@ -128,7 +142,7 @@ function Departments(): React.JSX.Element {
                           <Edit size={18} />
                         </button>
                         <button
-                          onClick={() => handleDelete(department.id, department.name)}
+                          onClick={() => handleDeleteClick(department.id, department.name)}
                           className="p-2 text-red-600 hover:bg-red-100 rounded transition"
                           title="Deletar"
                         >
@@ -143,8 +157,22 @@ function Departments(): React.JSX.Element {
           </div>
         )}
       </main>
+
+      <ConfirmModal 
+        isOpen={isDeleteModalOpen}
+        title="Excluir Departamento"
+        message={`Tem certeza que deseja excluir o departamento "${departmentToDelete?.name}"? Esta ação não pode ser desfeita.`}
+        onConfirm={handleDelete}
+        onCancel={() => setIsDeleteModalOpen(false)}
+        variant="danger"
+        confirmText="Excluir"
+        isLoading={isLoading}
+        closeOnOverlayClick={false}
+      />
     </div>
   )
+
+  
 }
 
 export default Departments

@@ -1,15 +1,25 @@
 import { useEquipment } from '@hooks/useEquipment'
 import { useDepartment } from '@renderer/hooks/useDepartment'
+import { useSnackbar } from '@renderer/context/SnackbarContext'
 import Button from '@renderer/components/Button'
 import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
 import FilterModal, { FilterValues } from '@renderer/components/FilterModal'
+import ConfirmModal from '@renderer/components/ConfirmModal'
 import { ListFilter, Plus, Edit, Trash2, Eye} from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 function Equipment(): React.JSX.Element {
   const navigate = useNavigate()
+  const { showSnackbar } = useSnackbar()
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [equipmentToDelete, setEquipmentToDelete] = useState<{ id: string, name: string } | null>(null)
+  const handleDeleteClick = (id: string, name: string): void => {
+    setEquipmentToDelete({ id, name })
+    setIsDeleteModalOpen(true)
+  }
   const { 
     equipments, 
     isLoading, 
@@ -38,15 +48,17 @@ function Equipment(): React.JSX.Element {
     void loadEquipments(page, searchTerm, activeFilters)
   }, [loadEquipments, page, activeFilters])
 
-  const handleDelete = async (id: string, name: string): Promise<void> => {
-    if (window.confirm(`Tem certeza que deseja deletar o equipamento "${name}"?`)) {
-      try {
-        await deleteEquipment(id)
-        alert('Equipamento deletado com sucesso!')
-        await loadEquipments(page)
-      } catch (error) {
-        alert(error instanceof Error ? error.message : 'Erro ao deletar equipamento')
-      }
+  const handleDelete = async (): Promise<void> => {
+    if (!equipmentToDelete) return
+    try {
+      await deleteEquipment(equipmentToDelete.id)
+      showSnackbar('Equipamento deletado com sucesso!', 'success')
+      await loadEquipments(page)
+    } catch (error) {
+      showSnackbar(`Erro ao deletar equipamento. "${error}" `, 'error')
+    } finally {
+      setIsDeleteModalOpen(false)
+      setEquipmentToDelete(null)
     }
   }
 
@@ -57,13 +69,13 @@ function Equipment(): React.JSX.Element {
 
   // --- Handlers do Modal ---
 
-  const handleApplyFilters = (filters: FilterValues) => {
+  const handleApplyFilters = (filters: FilterValues): void => {
     setActiveFilters(filters)
     // Volta para página 1 ao filtrar
     changePage(1) 
   }
 
-  const handleClearFilters = () => {
+  const handleClearFilters = (): void => {
     const emptyFilters = { departmentId: '', onlyActive: false }
     setActiveFilters(emptyFilters)
     changePage(1)
@@ -194,7 +206,7 @@ function Equipment(): React.JSX.Element {
                             <Edit size={16} />
                           </button>
                           <button 
-                            onClick={() => handleDelete(item.id, item.name)}
+                            onClick={() => handleDeleteClick(item.id, item.name)}
                             className="p-1.5 text-red-600 hover:bg-red-50 rounded transition"
                             title="Excluir"
                           >
@@ -233,6 +245,17 @@ function Equipment(): React.JSX.Element {
             </div>
           </div>
         </div>
+
+        <ConfirmModal 
+          isOpen={isDeleteModalOpen}
+          title="Excluir Equipamento"
+          message={`Tem certeza que deseja excluir o equipamento "${equipmentToDelete?.name}"?`}
+          onConfirm={handleDelete}
+          onCancel={() => setIsDeleteModalOpen(false)}
+          variant="danger"
+          confirmText="Excluir"
+          closeOnOverlayClick={false}
+        />
 
         <FilterModal 
           isOpen={isFilterModalOpen} 

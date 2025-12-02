@@ -1,4 +1,5 @@
 import { useDepartment } from '@hooks/useDepartment'
+import { useSnackbar } from '@renderer/context/SnackbarContext'
 import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
 import React, { useEffect, useState } from 'react'
@@ -6,6 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 function EditDepartment(): React.JSX.Element {
   const navigate = useNavigate()
+  const { showSnackbar } = useSnackbar()
   const { id } = useParams<{ id: string }>()
 
   const { updateDepartment, isLoading, errors, loadDepartmentById, department } = useDepartment()
@@ -48,10 +50,11 @@ function EditDepartment(): React.JSX.Element {
     
     try {
       await updateDepartment(id, formData)
-      alert('Departamento atualizado com sucesso!')
-      navigate('/departments')
+      showSnackbar('Departamento atualizado com sucesso!', 'success')
+      setTimeout(() => navigate('/departments'), 1500)
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Erro ao atualizar departamento')
+      console.error('Erro:', error)
+      showSnackbar(`Erro ao atualizar departamento. "${error}" `, 'error')
     }
   }
 

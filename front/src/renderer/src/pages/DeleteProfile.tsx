@@ -1,5 +1,6 @@
 import Sidebar from '@components/Sidebar'
 import { useProfile } from '@hooks/useProfile'
+import { useSnackbar } from '@renderer/context/SnackbarContext'
 import Input from '@renderer/components/Input'
 import { X } from 'lucide-react'
 import React, { useState } from 'react'
@@ -10,17 +11,18 @@ export default function DeleteProfile(): React.JSX.Element {
   const [error, setError] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const navigate = useNavigate()
+  const { showSnackbar } = useSnackbar()
   const { deleteProfile, isLoading } = useProfile()
 
   const handleConfirmDelete = async (): Promise<void> => {
     try {
       await deleteProfile()
       setIsModalOpen(false)
-      alert('Perfil excluído com sucesso!')
+      showSnackbar('Perfil excluído com sucesso!', 'success')
       navigate('/login')
     } catch (err) {
       console.error('Erro ao excluir:', err)
-      alert(err instanceof Error ? err.message : 'Erro ao excluir perfil')
+      showSnackbar(`Erro ao excluir perfil. "${err}" `, 'error')
     }
   }
 

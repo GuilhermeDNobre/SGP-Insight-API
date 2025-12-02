@@ -1,4 +1,5 @@
 import { useDepartment } from '@hooks/useDepartment'
+import { useSnackbar } from '@renderer/context/SnackbarContext'
 import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
 import React, { useState } from 'react'
@@ -6,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 
 function CreateDepartment(): React.JSX.Element {
   const navigate = useNavigate()
+  const { showSnackbar } = useSnackbar()
   const { createDepartment, isLoading, errors } = useDepartment()
   const [formData, setFormData] = useState({
     name: '',
@@ -27,10 +29,11 @@ function CreateDepartment(): React.JSX.Element {
 
     try {
       await createDepartment(formData)
-      alert('Departamento criado com sucesso!')
-      navigate('/departments')
+      showSnackbar('Departamento criado com sucesso!', 'success')
+      setTimeout(() => navigate('/departments'), 1500)
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Erro ao criar departamento')
+      console.error('Erro:', error)  
+      showSnackbar(`Erro ao criar departamento. "${error}" `, 'error')
     }
   }
 

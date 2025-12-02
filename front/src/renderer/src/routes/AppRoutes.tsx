@@ -1,4 +1,3 @@
-import AddTool from '@pages/AddTool'
 import Alerts from '@pages/Alerts'
 import CreateDepartment from '@pages/CreateDepartment'
 import CreateEquipment from '@pages/CreateEquipment'
