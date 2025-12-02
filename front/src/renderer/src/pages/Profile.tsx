@@ -87,6 +87,15 @@ function Profile(): React.JSX.Element {
           >
             Excluir Perfil
           </button>
+          <button
+            onClick={() => {
+              console.log('[Profile] Clicou em Listar Usuários')
+              navigate('/list-users')
+            }}
+            className="flex-1 px-4 py-2 bg-(--sec) text-white rounded-md hover:bg-(--ter) transition"
+          >
+            Listar Usuários
+          </button>
         </div>
       </main>
     </div>
