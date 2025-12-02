@@ -13,6 +13,8 @@ import Login from '@pages/Login'
 import Maintenance from '@pages/Maintenance'
 import Profile from '@pages/Profile'
 import Register from '@pages/Register'
+import CreateUser from '@renderer/pages/CreateUser'
+import ListUsers from '@renderer/pages/ListUsers'
 import { Route, Routes } from 'react-router-dom'
 
 export default function AppRoutes(): React.JSX.Element {
@@ -22,9 +24,6 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/" element={<Login />} />
       <Route path="/Register" element={<Register />} />
       <Route path="/Home" element={<Home />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/profile-edit" element={<EditProfile />} />
-      <Route path="/profile-delete" element={<DeleteProfile />} />
       <Route path="/addTool" element={<AddTool />} />
       <Route path="/maintenance" element={<Maintenance />} />
       <Route path="/alerts" element={<Alerts />} />
@@ -39,6 +38,13 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/departments" element={<Departments />} />
       <Route path="/department-create" element={<CreateDepartment />} />
       <Route path="/department-edit/:id" element={<EditDepartment />} />
+
+      {/* Perfil e Usuários */}
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/profile-edit" element={<EditProfile />} />
+      <Route path="/profile-delete" element={<DeleteProfile />} />
+      <Route path="/list-users" element={<ListUsers />} />
+      <Route path="/user-create" element={<CreateUser />} />
     </Routes>
   )
 }
