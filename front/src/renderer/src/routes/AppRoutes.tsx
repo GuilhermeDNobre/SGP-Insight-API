@@ -25,6 +25,7 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/profile" element={<Profile />} />
       <Route path="/profile-edit" element={<EditProfile />} />
       <Route path="/profile-delete" element={<DeleteProfile />} />
+      <Route path="/addTool" element={<AddTool />} />
       <Route path="/maintenance" element={<Maintenance />} />
       <Route path="/alerts" element={<Alerts />} />
 
@@ -33,7 +34,7 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/equipment-create" element={<CreateEquipment />} />
       <Route path="/equipment-edit/:id" element={<EditEquipment />} />
       <Route path="/equipment-details/:id" element={<EquipmentDetails />} />
-      
+
       {/* Departamentos */}
       <Route path="/departments" element={<Departments />} />
       <Route path="/department-create" element={<CreateDepartment />} />
