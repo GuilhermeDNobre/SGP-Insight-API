@@ -147,7 +147,6 @@ function Equipment(): React.JSX.Element {
                     </td>
                   </tr>
                 ) : equipments.length === 0 ? (
-                  // ESTADO VAZIO (Com a lógica que você pediu)
                   <tr>
                     <td colSpan={5} className="text-center py-20">
                       <div className="flex flex-col items-center justify-center gap-2">

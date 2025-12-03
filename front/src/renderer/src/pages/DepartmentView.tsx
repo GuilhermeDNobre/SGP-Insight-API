@@ -1,21 +1,77 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useCallback, useState, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useDepartment } from '@hooks/useDepartment'
+import MovementsTable from '@renderer/components/MovementsTable'
 import Sidebar from '@renderer/components/Sidebar'
 import Button from '@renderer/components/Button'
 import { ArrowLeft, Pencil } from 'lucide-react'
+import { EquipmentMove } from '../types/equipment_move'
+import api from '@renderer/services/api'
 
 export default function DepartmentDetails(): React.JSX.Element {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   
   const { loadDepartmentById, department, isLoading } = useDepartment()
-  
+
+  const [history, setHistory] = useState<EquipmentMove[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 3
+  const totalPages = Math.ceil(history.length / ITEMS_PER_PAGE)
+  const currentData = history.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE, 
+    currentPage * ITEMS_PER_PAGE
+  )
+  const tableTitleRef = useRef<HTMLHeadingElement>(null)
+  const handlePageChange = (newPage: number): void => {
+    setCurrentPage(newPage)
+    
+    // Rola a tela até o título da tabela
+    if (tableTitleRef.current) {
+      tableTitleRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      })
+    }
+  }
+
   useEffect(() => {
     if (id) {
       void loadDepartmentById(id)
+      void loadFullHistory(id)
     }
   }, [id, loadDepartmentById])
+
+  const loadFullHistory = useCallback(async (deptId: string) => {
+    setLoadingHistory(true)
+    try {
+      // Faz duas requisições em paralelo
+      const [resIn, resOut] = await Promise.all([
+        api.get(`/equipment-move?newlyAlocatedAtId=${deptId}&limit=50`),     // Entradas
+        api.get(`/equipment-move?previouslyAlocatedAtId=${deptId}&limit=50`) // Saídas
+      ])
+
+      const movesIn = resIn.data.data || []
+      const movesOut = resOut.data.data || []
+
+      // Junta as duas listas
+      const combined = [...movesIn, ...movesOut]
+
+      // Remove duplicatas
+      const unique = combined.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i)
+
+      // Ordena por data (mais recente primeiro)
+      unique.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+      setHistory(unique)
+    } catch (error) {
+      console.error('Erro ao carregar histórico', error)
+    } finally {
+      setLoadingHistory(false)
+    }
+  }, [])
 
   // Carrega Departamento
   if (isLoading || !department) {
@@ -55,7 +111,7 @@ export default function DepartmentDetails(): React.JSX.Element {
           </div>
 
           {/* Corpo de Detalhes */}
-          <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-8">
+          <div className="flex flex-col flex-1 overflow-y-auto p-8 gap-8">
             
             {/* Grid de Informações */}
             <div className="grid grid-cols-3 gap-4">
@@ -82,7 +138,23 @@ export default function DepartmentDetails(): React.JSX.Element {
               </div>
             </div>
 
-
+            <div> 
+              <h3
+                ref={tableTitleRef} 
+                className="text-lg font-bold text-gray-800 mb-4 pb-2 w-full"
+              >
+                Histórico de Movimentações de Equipamentos
+              </h3>
+       
+              <MovementsTable 
+                movements={currentData} 
+                isLoading={loadingHistory} 
+                showEquipmentColumn={true}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(handlePageChange)}
+              />
+            </div>
 
           </div>
         </div>
