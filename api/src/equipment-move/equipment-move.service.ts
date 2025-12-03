@@ -78,7 +78,7 @@ export class EquipmentMoveService {
       }
     });
 
-    const total = await this.prisma.equipment.count({ where })
+    const total = await this.prisma.equipmentMove.count({ where })
 
     return {
       data: moves,

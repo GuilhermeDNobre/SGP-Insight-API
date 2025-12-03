@@ -47,15 +47,45 @@ export class EquipmentService {
     });
     if (!department) throw new HttpException(`Department '${normalizedDto.alocatedAtId}' not found`, HttpStatus.BAD_REQUEST)
     
+    return this.prisma.$transaction(async (tx) => {
+      console.log('1. Iniciando transação...');
+      const equipment = await tx.equipment.create({
+        data: {
+          ...normalizedDto,
+          disabled: false,
+          createdAt: new Date()
+        },
+      });
 
-    return this.prisma.equipment.create({
-      data: {
-        ...normalizedDto,
-        disabled: false,
-        createdAt: new Date()
-      },
+      console.log('2. Equipamento criado:', equipment.id);
+
+      // Necessário criar a primeira movimentação do equipamento, mas a coluna previouslyAlocatedAtId precisa ser opcional no banco, ao invés de obrigatória, como está atualmente 
+      /*if (equipment.alocatedAtId) {
+        await tx.equipmentMove.create({
+          data: {
+            equipmentId: equipment.id,
+            newlyAlocatedAtId: equipment.alocatedAtId,
+            createdAt: new Date()
+          }
+        });
+      }*/
+
+      if (equipment.alocatedAtId) {
+        console.log('3. Criando histórico para departamento:', equipment.alocatedAtId);
+        await tx.equipmentMove.create({
+          data: {
+            equipmentId: equipment.id,            
+            previouslyAlocatedAtId: equipment.alocatedAtId, 
+            newlyAlocatedAtId: equipment.alocatedAtId,
+            createdAt: new Date()
+          } as any 
+        });
+
+        console.log('4. Histórico criado com sucesso.');
+      }
+
+      return equipment;
     });
-
   }
 
 
@@ -84,8 +114,8 @@ export class EquipmentService {
       const normalizedSearch = normalizeString(search);
       
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { ean: { contains: search, mode: 'insensitive' } },
+        { name: { contains: normalizedSearch, mode: 'insensitive' } },
+        { ean: { contains: normalizedSearch, mode: 'insensitive' } },
       ];
     } else {
       if (name) where.name = { contains: name, mode: 'insensitive' };
@@ -151,9 +181,24 @@ export class EquipmentService {
     delete (updateData as any).createdAt;
     delete (updateData as any).disabledAt;
 
-    return this.prisma.equipment.update({
-      where: { id },
-      data: updateData,
+    return this.prisma.$transaction(async (tx) => {
+        const updatedEquipment = await tx.equipment.update({
+            where: { id },
+            data: updateData,
+        });
+
+        if (updateData.alocatedAtId && updateData.alocatedAtId !== existing.alocatedAtId) {
+          await tx.equipmentMove.create({
+            data: {
+                equipmentId: id,
+                previouslyAlocatedAtId: existing.alocatedAtId, 
+                newlyAlocatedAtId: updateData.alocatedAtId,
+                createdAt: new Date()
+            }
+          });
+        }
+
+        return updatedEquipment;
     });
   }
 

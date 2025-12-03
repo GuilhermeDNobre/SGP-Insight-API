@@ -7,6 +7,7 @@ export interface DepartmentData {
   location: string
   responsableName: string
   responsableEmail: string
+  equipmentCount: number
 }
 
 export interface CreateDepartmentInput {
