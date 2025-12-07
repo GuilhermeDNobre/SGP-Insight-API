@@ -12,6 +12,7 @@ import DepartmentDetails from '@pages/DepartmentView'
 import Home from '@pages/Home'
 import Login from '@pages/Login'
 import Maintenance from '@pages/Maintenance'
+import CreateMaintenance from '@pages/CreateMaintenance'
 import Profile from '@pages/Profile'
 import Register from '@pages/Register'
 import CreateUser from '@renderer/pages/CreateUser'
@@ -25,7 +26,6 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/" element={<Login />} />
       <Route path="/Register" element={<Register />} />
       <Route path="/Home" element={<Home />} />
-      <Route path="/maintenance" element={<Maintenance />} />
       <Route path="/alerts" element={<Alerts />} />
 
       {/* Equipamentos */}
@@ -39,6 +39,10 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/department-create" element={<CreateDepartment />} />
       <Route path="/department-edit/:id" element={<EditDepartment />} />
       <Route path="/department-details/:id" element={<DepartmentDetails />} />
+
+      {/* Manutenções */}
+      <Route path="/maintenance" element={<Maintenance />} />
+      <Route path="/maintenance-create" element={<CreateMaintenance />} />
 
       {/* Perfil e Usuários */}
       <Route path="/profile" element={<Profile />} />

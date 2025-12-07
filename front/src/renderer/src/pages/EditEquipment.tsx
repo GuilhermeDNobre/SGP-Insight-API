@@ -197,7 +197,7 @@ export default function EditEquipment(): React.JSX.Element {
 
       await Promise.all(promises)
       
-      showSnackbar('Equipamento criado com sucesso!', 'success')
+      showSnackbar('Equipamento atualizado com sucesso!', 'success')
       setTimeout(() => navigate('/equipments'), 1500)
 
     } catch (error) {
