@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { MaintenanceFiltersDto } from './dto/maintenance-filters.dto';
 import { AlertsService } from 'src/alerts/alerts.service';
 import { CreateAlertDto, AlertSeverity } from 'src/alerts/dto/create-alert.dto';
+import { EquipmentStatus } from '@prisma/client';
 import { take } from 'rxjs';
 
 @Injectable()
@@ -94,6 +95,17 @@ export class MaintenanceService {
         equipmentId: dto.equipmentId,
       },
     });
+
+    // Atualiza o status do equipamento para EM_MANUTENCAO
+    try {
+      await this.prisma.equipment.update({
+        where: { id: dto.equipmentId },
+        data: { status: EquipmentStatus.EM_MANUTENCAO },
+      });
+    } catch (err) {
+      // Não impedir criação da manutenção se atualização do equipamento falhar
+      console.error('Failed to update equipment status to EM_MANUTENCAO', err);
+    }
 
     if (dto.componentIds?.length) {
       await this.prisma.maintenanceComponent.createMany({
