@@ -77,7 +77,16 @@ export class MaintenanceService {
         skip,
         take,
         orderBy: { createdAt: 'desc' },
-        include: { components: { include: { component: true } } },
+        include: { 
+          equipment: {
+            select: {
+              id: true,
+              name: true,
+              ean: true
+            }
+          },
+          components: { include: { component: true } }
+        },
       }),
       this.prisma.maintenance.count({ where }),
     ]);
@@ -96,7 +105,10 @@ export class MaintenanceService {
   async findOne(id: string) {
     const maintenance = await this.prisma.maintenance.findUnique({
       where: { id },
-      include: { components: { include: { component: true } } },
+      include: { 
+        equipment: { select: { id: true, name: true, ean: true } },
+        components: { include: { component: true } } 
+      },
     });
 
     if (!maintenance) {
@@ -118,7 +130,10 @@ export class MaintenanceService {
         status: dto.status ?? undefined,
         finishedAt: dto.status === MaintenanceStatus.TERMINADA ? new Date() : undefined, 
       },
-      include: { components: { include: { component: true } } },
+      include: { 
+        equipment: { select: { id: true, name: true, ean: true } },
+        components: { include: { component: true } } 
+      },
      });
   }
 

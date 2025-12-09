@@ -6,7 +6,7 @@ import Sidebar from '@renderer/components/Sidebar'
 import Button from '@renderer/components/Button'
 import Input from '@renderer/components/Input'
 import ConfirmModal from '@renderer/components/ConfirmModal'
-import { Plus, Eye, Edit, Trash2, CheckCircle, Search } from 'lucide-react'
+import { Plus, Eye, Edit, Trash2, CheckCircle } from 'lucide-react'
 
 export default function Maintenances(): React.JSX.Element {
   const navigate = useNavigate()
@@ -28,7 +28,7 @@ export default function Maintenances(): React.JSX.Element {
 
   useEffect(() => {
     void loadMaintenances(page, searchTerm)
-  }, [loadMaintenances, page, searchTerm]) // Remova searchTerm daqui se quiser buscar só no Enter
+  }, [loadMaintenances, page]) // Remova searchTerm daqui se quiser buscar só no Enter
 
   const handleSearch = (): void => {
     void loadMaintenances(1, searchTerm)
@@ -85,17 +85,13 @@ export default function Maintenances(): React.JSX.Element {
             <Input 
               placeholder="Buscar por técnico ou equipamento..." 
               value={searchTerm}
-              labelVariant='default'
-              onChange={e => setSearchTerm(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              onChange={e => setSearchTerm(e.target.value)} // Atualiza estado
+              onKeyDown={e => {
+                if (e.key === 'Enter') handleSearch() // Busca ao dar Enter
+              }}
+              labelVariant="default"
               className="h-[30px] flex-1"
-            />
-            <Button 
-              label="Buscar"
-              onClick={handleSearch}
-              variant="secondary"
-              className="h-10h-[30px] w-[196px] whitespace-nowrap"
-              endIcon={<Search size={18} />}
+              type='search'
             />
             <Button 
               label="Nova Manutenção"
@@ -148,7 +144,7 @@ export default function Maintenances(): React.JSX.Element {
                       <button
                         title='Ver Detalhes' 
                         onClick={() => 
-                          navigate(`/maintenances/${item.id}`)
+                          navigate(`/maintenance-details/${item.id}`)
                         }
                         className="p-1 text-gray-500 hover:bg-gray-100 rounded">
                         <Eye size={18} />
@@ -160,7 +156,7 @@ export default function Maintenances(): React.JSX.Element {
                           <button 
                             title='Editar'
                             onClick={() => 
-                              navigate(`/maintenances/edit/${item.id}`)
+                              navigate(`/maintenance-edit/${item.id}`)
                             } 
                             className="p-1 text-blue-600 hover:bg-blue-50 rounded">
                             <Edit size={18} />

@@ -45,23 +45,23 @@ export default function Home(): React.JSX.Element {
             title="Total de Equipamentos"
             value="200"
             icon={<Monitor size={32} />}
-            iconColorClass="text-[var(--sec)]"
+            iconColorClass="text-[var(--ter)]"
           />
           <StatCard
             title="Em Manutenção"
             value="35"
             icon={<Wrench size={32} />}
-            iconColorClass="text-[var(--sec)]"
+            iconColorClass="text-[var(--ter)]"
           />
           <StatCard
             title="Disponíveis"
             value="42"
             icon={<CheckCircle size={32} />}
-            iconColorClass="text-[var(--sec)]"
+            iconColorClass="text-[var(--ter)]"
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 py-6">
 
           <div className="lg:col-span-2 flex flex-col gap-6">
 
@@ -69,7 +69,7 @@ export default function Home(): React.JSX.Element {
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col h-[380px]">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-bold text-[var(--txt)] w-full text-center">Distribuição por departamentos</h3>
-                <BarChart3 className="text-[var(--txt)] opacity-80" />
+                <BarChart3 className="text-[var(--ter)]" />
               </div>
               <div className="flex-1 w-full min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
@@ -95,7 +95,7 @@ export default function Home(): React.JSX.Element {
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col h-[380px]">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-bold text-[var(--txt)] w-full text-center">Status do Equipamento</h3>
-                <PieIcon className="text-[var(--sec)] opacity-50" />
+                <PieIcon className="text-[var(--ter)]" />
               </div>
               <div className="flex-1 w-full min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
@@ -126,7 +126,7 @@ export default function Home(): React.JSX.Element {
 
           {/* Alertas */}
           <div className="lg:col-span-1 bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col h-full">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center pb-6">
               <h3 className="text-xl font-bold text-[var(--txt)]">Alertas</h3>
               <AlertTriangle className="text-[var(--atencio)] opacity-80" size={24} />
             </div>

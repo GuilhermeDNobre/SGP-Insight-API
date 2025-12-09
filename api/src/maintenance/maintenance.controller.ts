@@ -38,6 +38,14 @@ export class MaintenanceController {
     return this.maintenanceService.findAll(query);
   }
 
+  @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get maintenance details by ID' })
+  async findOne(@Param('id') id: string) {
+    return this.maintenanceService.findOne(id);
+  }
+
   //get por equipamentos
   @Get('equipment/:equipmentId')
   @UseGuards(JwtAuthGuard, RolesGuard)

@@ -92,7 +92,7 @@ export default function CreateMaintenance(): React.JSX.Element {
 
     try {
       // Chama a API de criação
-      await api.post('/maintenances', {
+      await api.post('/maintenance', {
         equipmentId: selectedEquip,
         technician,
         description,
@@ -100,7 +100,7 @@ export default function CreateMaintenance(): React.JSX.Element {
       })
       
       showSnackbar('Manutenção aberta com sucesso!', 'success')
-      navigate('/maintenances')
+      navigate('/maintenance')
     } catch (error) {
       showSnackbar(`Erro ao criar manutenção. "${error}" `, 'error')
     }

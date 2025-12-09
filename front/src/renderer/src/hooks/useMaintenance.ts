@@ -35,7 +35,7 @@ export function useMaintenance(): {
   const loadMaintenances = useCallback(async (pageToLoad = 1, search = '', status = '') => {
     try {
       setIsLoading(true)
-      let url = `/maintenances?page=${pageToLoad}&limit=10`
+      let url = `/maintenance?page=${pageToLoad}&limit=10`
       if (search) url += `&search=${encodeURIComponent(search)}`
       if (status) url += `&status=${status}`
 
@@ -55,7 +55,7 @@ export function useMaintenance(): {
   const loadMaintenanceById = useCallback(async (id: string) => {
     try {
       setIsLoading(true)
-      const response = await api.get(`/maintenances/${id}`)
+      const response = await api.get(`/maintenance/${id}`)
       setMaintenance(response.data)
     } catch (error) {
       console.error('Erro ao carregar manutenção', error)
@@ -67,7 +67,7 @@ export function useMaintenance(): {
   const createMaintenance = async (data: CreateMaintenanceInput): Promise<void> => {
     try {
       setIsLoading(true)
-      await api.post('/maintenances', data)
+      await api.post('/maintenance', data)
     } finally {
       setIsLoading(false)
     }
@@ -76,7 +76,7 @@ export function useMaintenance(): {
   const updateMaintenance = async (id: string, data: UpdateMaintenanceInput): Promise<void> => {
     try {
       setIsLoading(true)
-      await api.patch(`/maintenances/${id}`, data)
+      await api.patch(`/maintenance/${id}`, data)
     } finally {
       setIsLoading(false)
     }
@@ -87,7 +87,7 @@ export function useMaintenance(): {
     try {
       setIsLoading(true)
       // Geralmente há uma rota específica ou um patch com status TERMINADA
-      await api.patch(`/maintenances/${id}/finish`) 
+      await api.patch(`/maintenance/${id}/finish`) 
     } finally {
       setIsLoading(false)
     }
@@ -96,7 +96,7 @@ export function useMaintenance(): {
   const deleteMaintenance = async (id: string): Promise<void> => {
     try {
       setIsLoading(true)
-      await api.delete(`/maintenances/${id}`)
+      await api.delete(`/maintenance/${id}`)
     } finally {
       setIsLoading(false)
     }

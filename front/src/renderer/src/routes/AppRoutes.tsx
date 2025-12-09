@@ -9,6 +9,7 @@ import EditProfile from '@pages/EditProfile'
 import Equipment from '@pages/Equipment'
 import EquipmentDetails from '@pages/EquipmentView'
 import DepartmentDetails from '@pages/DepartmentView'
+import MaintenanceDetails from '@pages/MaintenanceView'
 import Home from '@pages/Home'
 import Login from '@pages/Login'
 import Maintenance from '@pages/Maintenance'
@@ -43,6 +44,7 @@ export default function AppRoutes(): React.JSX.Element {
       {/* Manutenções */}
       <Route path="/maintenance" element={<Maintenance />} />
       <Route path="/maintenance-create" element={<CreateMaintenance />} />
+      <Route path="/maintenance-details/:id" element={<MaintenanceDetails />} />
 
       {/* Perfil e Usuários */}
       <Route path="/profile" element={<Profile />} />
