@@ -10,6 +10,8 @@ import { ComponentsModule } from './components/components.module';
 import { EmailService } from './email/email.service';
 import { EmailModule } from './email/email.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
+import { AlertsModule } from './alerts/alerts.module';
+import { AlertsModule } from './alerts/alerts.module';
 
 @Module({
   imports: [
@@ -22,7 +24,8 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
     EquipmentMoveModule,
     ComponentsModule,
     EmailModule,
-    MaintenanceModule
+    MaintenanceModule,
+    AlertsModule
   ],
   controllers: [],
   providers: [EmailService],

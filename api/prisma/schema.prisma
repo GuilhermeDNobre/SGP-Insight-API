@@ -38,7 +38,7 @@ model Equipment {
   id           String     @id @default(uuid())
   name         String
   ean          String     @unique
-  disabled     Boolean    @default(false)
+  status       EquipmentStatus @default(ATIVO)
   createdAt    DateTime   @default(now())
   disabledAt   DateTime?
   alocatedAtId String
@@ -49,6 +49,12 @@ model Equipment {
   components Component[]
 
   maintenances Maintenance[]
+}
+
+enum EquipmentStatus {
+  ATIVO
+  EM_MANUTENCAO
+  DESABILITADO
 }
 
 model EquipmentMove {
@@ -115,4 +121,17 @@ model MaintenanceComponent {
   component   Component   @relation(fields: [componentId], references: [id])
 
   @@id([maintenanceId, componentId])
+}
+
+model Alerts{
+  id          String            @id @default(uuid())
+  severity    AlertSeverity     @default(LOW)
+  description String
+  createdAt   DateTime          @default(now())
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
 }

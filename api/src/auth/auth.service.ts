@@ -40,22 +40,19 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('Email não encontrado');
     }
+    
+    const newPassword = generateDistinctPassword(8);
 
-    const token = this.jwtService.sign(
-      { sub: user.id },
-      { expiresIn: '15m' }
-    );
+    const hashed = await bcrypt.hash(newPassword, 10);
 
-    const resetLink = `https://sgp-frontend/reset-password?token=${token}`;
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashed },
+    });
 
-    const preview = await this.emailService.sendForgotPasswordEmail(
-      user.email,
-      resetLink,
-    );
+    await this.emailService.sendNewPasswordEmail(user.email, newPassword);
 
-    return {
-      message: 'Email enviado!'
-    };
+    return { message: 'Nova senha gerada e enviada por email' };
   }
 
   async resetPassword(token: string, newPassword: string, confirmPassword: string) {
@@ -76,3 +73,19 @@ export class AuthService {
   }
 
 } 
+
+function generateDistinctPassword(length: number): string {
+  const pool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  if (length > pool.length) {
+    throw new Error('Requested password length exceeds unique character pool size');
+  }
+
+  const chars = pool.split('');
+  let password = '';
+  for (let i = 0; i < length; i++) {
+    const idx = Math.floor(Math.random() * chars.length);
+    password += chars.splice(idx, 1)[0];
+  }
+
+  return password;
+}
