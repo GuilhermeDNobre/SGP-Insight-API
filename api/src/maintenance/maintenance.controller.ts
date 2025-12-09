@@ -28,6 +28,7 @@ export class MaintenanceController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List all maintenances (with optional filters & pagination)' })
+  @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'equipmentId', required: false })
   @ApiQuery({ name: 'departmentId', required: false })
   @ApiQuery({ name: 'status', enum: MaintenanceStatus, required: false })

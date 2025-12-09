@@ -71,6 +71,14 @@ export class MaintenanceService {
       resolved: query.onlyOpen ? false : undefined,
     }
 
+    if (query.search) {
+      where.OR = [
+        { technician: { contains: query.search, mode: 'insensitive' } },
+        { description: { contains: query.search, mode: 'insensitive' } },
+        { equipment: { name: { contains: query.search, mode: 'insensitive' } } }
+      ];
+    }
+
     const [items, total] = await this.prisma.$transaction([
       this.prisma.maintenance.findMany({
         where,

@@ -18,7 +18,9 @@ export default function Maintenances(): React.JSX.Element {
     loadMaintenances, 
     deleteMaintenance, 
     finishMaintenance,
-    page
+    page,
+    totalPages,
+    changePage
   } = useMaintenance()
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -103,90 +105,122 @@ export default function Maintenances(): React.JSX.Element {
         </div>
 
         {/* Tabela */}
-        <div className="rounded-lg flex-1 overflow-auto bg-white shadow-sm w-full">
-          <table className="text-left text-sm text-gray-600 w-full border-collapse">
-            <thead className="bg-gray-100 text-xs uppercase font-semibold text-gray-700 sticky top-0 z-10 shadow-sm">
-              <tr>
-                <th className="px-6 py-4">Equipamento</th>
-                <th className="px-6 py-4">Responsável</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Data Abertura</th>
-                <th className="px-6 py-4 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {isLoading ? (
+        <div className="bg-white rounded-lg shadow border border-gray-200 flex flex-col flex-1 overflow-hidden w-full">
+          <div className="overflow-auto flex-1 ">
+            <table className="text-left text-sm text-gray-600 w-full border-collapse">
+              <thead className="bg-gray-100 text-xs uppercase font-semibold text-gray-700 sticky top-0 z-10 shadow-sm">
                 <tr>
-                    <td colSpan={5} className="text-center py-20">
-                      <div className="flex flex-col justify-center items-center gap-3">
-                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
-                      <p className="text-gray-500 text-lg">Carregando equipamentos...</p>
-                    </div>
-                  </td>
+                  <th className="px-6 py-4">Equipamento</th>
+                  <th className="px-6 py-4">Responsável</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Data Abertura</th>
+                  <th className="px-6 py-4">Data Conclusão</th>
+                  <th className="px-6 py-4 text-right">Ações</th>
                 </tr>
-              ) : maintenances.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-20">Nenhuma manutenção encontrada.</td></tr>
-              ) : (
-                maintenances.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-duration-150">
-                    <td className="px-6 py-4 font-medium text-gray-900">{item.equipment?.name || 'N/A'}</td>
-                    <td className="px-6 py-4">{item.technician}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-bold
-                        ${item.status === 'ABERTA' ? 'bg-blue-100 text-blue-800' : 
-                          item.status === 'EM_ANDAMENTO' ? 'bg-yellow-100 text-yellow-800' : 
-                          'bg-green-100 text-green-800'}`}>
-                        {item.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">{new Date(item.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 text-right flex justify-end gap-2">
-                      <button
-                        title='Ver Detalhes' 
-                        onClick={() => 
-                          navigate(`/maintenance-details/${item.id}`)
-                        }
-                        className="p-1 text-gray-500 hover:bg-gray-100 rounded">
-                        <Eye size={18} />
-                      </button>
-
-                      {/* Só mostra Editar e Finalizar se não estiver TERMINADA */}
-                      {item.status !== 'TERMINADA' && (
-                        <>
-                          <button 
-                            title='Editar'
-                            onClick={() => 
-                              navigate(`/maintenance-edit/${item.id}`)
-                            } 
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded">
-                            <Edit size={18} />
-                          </button>
-
-                          <button 
-                            title='Finalizar Manutenção'
-                            onClick={() =>
-                              handleOpenFinish(item.id)
-                            } 
-                            className="p-1 text-green-600 hover:bg-green-50 rounded">
-                            <CheckCircle size={18} />
-                          </button>
-                        </>
-                      )}
-
-                      <button 
-                        title='Remover Manutenção'
-                        onClick={() =>
-                          handleOpenDelete(item.id)
-                        } 
-                        className="p-1 text-red-600 hover:bg-red-50 rounded">
-                        <Trash2 size={18} />
-                      </button>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {isLoading ? (
+                  <tr>
+                      <td colSpan={5} className="text-center py-20">
+                        <div className="flex flex-col justify-center items-center gap-3">
+                          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
+                        <p className="text-gray-500 text-lg">Carregando equipamentos...</p>
+                      </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : maintenances.length === 0 ? (
+                  <tr><td colSpan={6} className="text-center py-20">Nenhuma manutenção encontrada.</td></tr>
+                ) : (
+                  maintenances.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50 transition-duration-150">
+                      <td className="px-6 py-4 font-medium text-gray-900">{item.equipment?.name || 'N/A'}</td>
+                      <td className="px-6 py-4">{item.technician}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold
+                          ${item.status === 'ABERTA' ? 'bg-blue-100 text-blue-800' : 
+                            item.status === 'EM_ANDAMENTO' ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-green-100 text-green-800'}`}>
+                          {item.status.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">{new Date(item.createdAt).toLocaleDateString()}</td>
+                      {item.finishedAt ? (
+                        <td className="px-6 py-4">{new Date(item.finishedAt).toLocaleDateString()}</td>
+                      ) : (
+                        <td className="px-6 py-4 text-gray-400 italic">Em andamento</td>
+                      )}
+                      <td className="px-6 py-4 text-right flex justify-end gap-2">
+                        <button
+                          title='Ver Detalhes' 
+                          onClick={() => 
+                            navigate(`/maintenance-details/${item.id}`)
+                          }
+                          className="p-1 text-gray-500 hover:bg-gray-100 rounded">
+                          <Eye size={18} />
+                        </button>
+
+                        {/* Só mostra Editar e Finalizar se não estiver TERMINADA */}
+                        {item.status !== 'TERMINADA' && (
+                          <>
+                            <button 
+                              title='Editar'
+                              onClick={() => 
+                                navigate(`/maintenance-edit/${item.id}`)
+                              } 
+                              className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                              <Edit size={18} />
+                            </button>
+
+                            <button 
+                              title='Finalizar Manutenção'
+                              onClick={() =>
+                                handleOpenFinish(item.id)
+                              } 
+                              className="p-1 text-green-600 hover:bg-green-50 rounded">
+                              <CheckCircle size={18} />
+                            </button>
+                          </>
+                        )}
+
+                        <button 
+                          title='Remover Manutenção'
+                          onClick={() =>
+                            handleOpenDelete(item.id)
+                          } 
+                          className="p-1 text-red-600 hover:bg-red-50 rounded">
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Rodapé de Paginação */}
+          <div className="border-t border-gray-200 px-6 py-4 flex items-center justify-between bg-gray-50 shrink-0">
+            <span className="text-sm text-gray-700">
+              Página <span className="font-semibold text-gray-900">{page}</span> de <span className="font-semibold text-gray-900">{totalPages || 1}</span>
+            </span>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={() => changePage(page - 1)}
+                disabled={page === 1 || isLoading}
+                className="px-3 py-1.5 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => changePage(page + 1)}
+                disabled={page === totalPages || isLoading}
+                className="px-3 py-1.5 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Próximo
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Modais */}

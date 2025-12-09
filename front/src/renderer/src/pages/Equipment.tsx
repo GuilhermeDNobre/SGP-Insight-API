@@ -87,7 +87,7 @@ function Equipment(): React.JSX.Element {
       <Sidebar />
 
       {/* Conteúdo central da página */}
-      <div className="flex w-full max-w-[1400px] h-screen overflow-hidden py-20 px-8 flex-col items-start gap-2.5">
+      <main className="flex w-full max-w-[1400px] h-screen overflow-hidden py-20 px-8 flex-col items-start gap-2.5">
         <div className="flex flex-col w-full gap-2.5 shrink-0 top-[120px] bg-white pb-4 z-10">
           <h1 className="font-bold text-2xl leading-normal">Buscar Equipamentos</h1>
           <div className="flex flex-row gap-2.5 w-full">
@@ -264,7 +264,7 @@ function Equipment(): React.JSX.Element {
           onApply={handleApplyFilters}
           onClear={handleClearFilters}
         />
-      </div>
+      </main>
     </div>
   )
 }

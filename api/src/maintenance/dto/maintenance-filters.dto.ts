@@ -1,4 +1,4 @@
-import { IsOptional, IsUUID, IsEnum, IsBoolean, IsInt, Min } from 'class-validator';
+import { IsOptional, IsUUID, IsEnum, IsBoolean, IsInt, Min, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 export enum MaintenanceStatus {
   ABERTA = 'ABERTA',
@@ -8,6 +8,10 @@ export enum MaintenanceStatus {
 //ficou feio, mas é o que resolveu por enquanto o problema de importação do enum do prisma 2
 
 export class MaintenanceFiltersDto {
+  @IsOptional()
+  @IsString()
+  search?: string;
+  
   @IsOptional()
   @IsUUID()
   equipmentId?: string;

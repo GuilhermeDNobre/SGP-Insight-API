@@ -15,7 +15,7 @@ export function useMaintenance(): {
   isLoading: boolean, 
   page: number, 
   totalPages: number, 
-  changePage: (page: number, search: string, status: string) => Promise<void>,
+  changePage: (page: number) => Promise<void>,
   loadMaintenances: (page: number, search?: string, status?: string) => Promise<void>,
   loadMaintenanceById: (id: string) => Promise<void>,
   createMaintenance: (data: CreateMaintenanceInput) => Promise<void>,
