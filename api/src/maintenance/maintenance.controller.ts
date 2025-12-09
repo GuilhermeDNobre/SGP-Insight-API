@@ -77,4 +77,20 @@ export class MaintenanceController {
     });
   }
 
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update maintenance info (technician, description)' })
+  async update(@Param('id') id: string, @Body() dto: UpdateMaintenanceDto) {
+    return this.maintenanceService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles('ADMIN') // restringir delete a admins
+  @ApiOperation({ summary: 'Delete a maintenance' })
+  async remove(@Param('id') id: string) {
+    return this.maintenanceService.remove(id);
+  }
 }
