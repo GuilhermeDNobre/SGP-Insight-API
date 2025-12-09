@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID, IsEnum } from 'class-validator';
+import { EquipmentStatus } from '@prisma/client';
 
 export class CreateEquipmentDto {
   @ApiProperty({ description: 'Name of the equipment', example: 'Impressora HP LaserJet 1200' })
@@ -17,8 +18,8 @@ export class CreateEquipmentDto {
   @IsUUID()
   alocatedAtId: string;
 
-  @ApiProperty({ description: 'Whether the equipment is disabled', example: false, required: false })
+  @ApiProperty({ description: 'Initial status of the equipment', enum: EquipmentStatus, example: EquipmentStatus.ATIVO, required: false })
   @IsOptional()
-  @IsBoolean()
-  disabled?: boolean;
+  @IsEnum(EquipmentStatus)
+  status?: EquipmentStatus;
 }

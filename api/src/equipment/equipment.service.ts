@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestj
 import { CreateEquipmentDto } from './dto/create-equipment.dto';
 import { UpdateEquipmentDto } from './dto/update-equipment.dto';
 import { PrismaService } from "src/prisma/prisma.service";
+import { EquipmentStatus } from '@prisma/client';
 import { take } from 'rxjs';
 
 interface EquipmentFilters {
@@ -10,7 +11,7 @@ interface EquipmentFilters {
   name?: string;
   ean?: string;
   alocatedAtId?: string;
-  onlyActive?: boolean;
+  status?: string | EquipmentStatus;
   orderBy?: string;
   sort?: 'asc' | 'desc';
   search?: string;
@@ -28,6 +29,17 @@ function normalizeString(str: string): string {
 @Injectable()
 export class EquipmentService {
   constructor(private prisma: PrismaService) {}
+  
+  private mapToPrismaStatus(status?: string | EquipmentStatus): EquipmentStatus | null {
+    if (!status) return null;
+    const s = String(status).toLowerCase();
+    if (s === 'active' || s === 'ativo' || s === 'ATIVO'.toLowerCase()) return 'ATIVO';
+    if (s === 'maintenance' || s === 'em_manutencao' || s === 'em manutencao' || s === 'em_manutencão') return 'EM_MANUTENCAO';
+    if (s === 'disabled' || s === 'desabilitado') return 'DESABILITADO';
+    // accept direct Prisma enum values as well
+    if (['ATIVO','EM_MANUTENCAO','DESABILITADO'].includes(String(status).toUpperCase())) return String(status).toUpperCase() as EquipmentStatus;
+    return null;
+  }
   async create(dto: CreateEquipmentDto) {
     const normalizedDto = {
       ...dto,
@@ -48,13 +60,25 @@ export class EquipmentService {
     if (!department) throw new HttpException(`Department '${normalizedDto.alocatedAtId}' not found`, HttpStatus.BAD_REQUEST)
     
 
-    return this.prisma.equipment.create({
-      data: {
-        ...normalizedDto,
-        disabled: false,
-        createdAt: new Date()
-      },
-    });
+    // map optional status to Prisma enum values and adjust disabledAt if needed
+    const dtoStatus = (dto as any).status as EquipmentStatus | undefined;
+    const prismaStatus = this.mapToPrismaStatus(dtoStatus) ?? 'ATIVO';
+    const data: any = {
+      ...normalizedDto,
+      createdAt: new Date(),
+    };
+
+    if (prismaStatus === 'DESABILITADO') {
+      data.disabledAt = new Date();
+    } else {
+      data.disabledAt = null;
+    }
+
+    // persist status field if exists in schema (some setups store it explicitly)
+    // persist status field (Prisma schema defines it)
+    data.status = prismaStatus;
+
+    return this.prisma.equipment.create({ data });
 
   }
 
@@ -67,7 +91,7 @@ export class EquipmentService {
       name,
       ean,
       alocatedAtId,
-      onlyActive,
+      status,
       orderBy = 'createdAt',
       sort = 'desc',
       search,
@@ -77,7 +101,7 @@ export class EquipmentService {
       name: name ? { contains: name, mode: 'insensitive' } : undefined,
       ean: ean ? { contains: ean, mode: 'insensitive' } : undefined,
       alocatedAtId: alocatedAtId || undefined,
-      disabled: onlyActive ? false : undefined,
+      // disabled will be set below based on `status` filter
     }
     
     if (search) {
@@ -93,6 +117,13 @@ export class EquipmentService {
     }
 
     const skip = (page - 1) * limit
+
+    // Apply status filter mapping (map input to Prisma enum)
+    const prismaStatusFilter = this.mapToPrismaStatus(status);
+    if (prismaStatusFilter) {
+      // filter directly by equipment.status enum
+      where.status = prismaStatusFilter;
+    }
 
     const equipments = await this.prisma.equipment.findMany({
       where,
@@ -112,7 +143,7 @@ export class EquipmentService {
         total,
         page,
         lastPage: Math.ceil(total / limit),
-        filters: {name, ean, alocatedAtId, onlyActive, search},
+        filters: {name, ean, alocatedAtId, status, search},
         orderBy,
         sort,
       },
@@ -147,7 +178,7 @@ export class EquipmentService {
       updateData.alocatedAtId = dto.alocatedAtId
     }
 
-    delete (updateData as any).disabled;
+    // remove fields that should not be directly updated via this endpoint
     delete (updateData as any).createdAt;
     delete (updateData as any).disabledAt;
 
@@ -157,18 +188,31 @@ export class EquipmentService {
     });
   }
 
-  async softRemove(id: string){
+  /**
+   * Set equipment status to a value from `EquipmentStatus` enum (ATIVO | EM_MANUTENCAO | DESABILITADO).
+   * This persists `status` on the Equipment record and updates `disabledAt` when appropriate.
+   */
+  async setStatus(id: string, status: EquipmentStatus) {
     const equipment = await this.prisma.equipment.findUnique({ where: { id } });
 
     if (!equipment) throw new HttpException('Equipment not found', HttpStatus.NOT_FOUND);
-    if (equipment.disabled) throw new HttpException('Equipment already disabled', HttpStatus.BAD_REQUEST);
-    
-    return this.prisma.equipment.update({
-      where: { id },
-      data: {
-        disabled: true,
-        disabledAt: new Date(),
-      }
-    });
+
+    const data: any = {};
+    const prismaStatus = this.mapToPrismaStatus(status);
+    if (!prismaStatus) throw new HttpException('Invalid status', HttpStatus.BAD_REQUEST);
+
+    if (prismaStatus === 'DESABILITADO') {
+      if (equipment.status === 'DESABILITADO') throw new HttpException('Equipment already disabled', HttpStatus.BAD_REQUEST);
+      data.disabledAt = new Date();
+    } else if (prismaStatus === 'ATIVO') {
+      data.disabledAt = null;
+    } else if (prismaStatus === 'EM_MANUTENCAO') {
+      // Do not toggle disabledAt for maintenance; maintenance is represented by Maintenance records
+    }
+
+    // persist status field (schema now contains `status` enum)
+    data.status = prismaStatus;
+
+    return this.prisma.equipment.update({ where: { id }, data });
   }
 }
