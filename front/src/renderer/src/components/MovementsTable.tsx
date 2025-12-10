@@ -71,7 +71,7 @@ export default function MovementsTable ({
         </tbody>
       </table>
 
-      {onPageChange && totalPages > 1 && (
+      {onPageChange && totalPages >= 1 && (
         <div className="border-t border-gray-200 px-6 py-3 flex items-center justify-between bg-gray-50 rounded-b-lg">
           <span className="text-sm text-gray-600">
             Página <span className="font-semibold text-gray-900">{currentPage}</span> de <span className="font-semibold text-gray-900">{totalPages}</span>

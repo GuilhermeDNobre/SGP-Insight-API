@@ -4,14 +4,15 @@ import { useDepartment } from '@hooks/useDepartment'
 import { useEquipment } from '@hooks/useEquipment'
 import { useEquipmentMove } from '@hooks/useEquipmentMove'
 import MovementsTable from '@renderer/components/MovementsTable'
+import MaintenancesTable, { MaintenanceTableData } from '@renderer/components/MaintenancesTable'
 import { ComponentData } from '@renderer/types/equipment'
 import Sidebar from '@renderer/components/Sidebar'
 import Button from '@renderer/components/Button'
 import { ComponentTable } from '@renderer/components/ComponentsTable'
-import { ArrowLeft, Pencil } from 'lucide-react'
+import { ArrowLeft, Pencil} from 'lucide-react'
 import api from '@renderer/services/api'
 
-// Interface interna para a resposta da API
+// Interface interna para Componentes
 interface BackendComponent {
   id: string
   name: string
@@ -23,24 +24,24 @@ export default function EquipmentDetails(): React.JSX.Element {
   const { id } = useParams<{ id: string }>()
   
   const { loadEquipmentById, equipment, isLoading } = useEquipment()
+
   const { movements, loadMovements, isLoading: loadingMoves, totalMoves } = useEquipmentMove()
+  const [movePage, setMovePage] = useState(1)
+  const MOVES_PER_PAGE = 3
+  const totalMovePages = Math.ceil(totalMoves / MOVES_PER_PAGE)
+  
+  const [maintenances, setMaintenances] = useState<MaintenanceTableData[]>([])
+  const [loadingMaint, setLoadingMaint] = useState(false)
+  const [maintPage, setMaintPage] = useState(1)
+  const [maintTotal, setMaintTotal] = useState(0)
+  const MAINT_PER_PAGE = 3
+  const totalMaintPages = Math.ceil(maintTotal / MAINT_PER_PAGE)
+
+
   const { departments, loadDepartments } = useDepartment()
   const [components, setComponents] = useState<ComponentData[]>([])
 
-  const [page, setCurrentPage] = useState(1)
-  const ITEMS_PER_PAGE = 3
-  const totalPages = Math.ceil(totalMoves / ITEMS_PER_PAGE)
   const tableTitleRef = useRef<HTMLHeadingElement>(null)
-  const handlePageChange = (newPage: number): void => {
-    setCurrentPage(newPage)
-
-    if (tableTitleRef.current) {
-      tableTitleRef.current.scrollIntoView({
-        behavior: 'smooth', 
-        block: 'start' 
-      })
-    }
-  }
 
   // Carrega Equipamento e Componentes
   useEffect(() => {
@@ -57,13 +58,39 @@ export default function EquipmentDetails(): React.JSX.Element {
     if (id) {
       void loadMovements({ 
         equipmentId: id,
-        page: page,
-        limit: ITEMS_PER_PAGE,
+        page: movePage,
+        limit: MOVES_PER_PAGE,
         orderBy: 'createdAt',
         sort: 'desc'
       })
     }
-  }, [id, page, loadMovements])
+  }, [id, movePage, loadMovements])
+
+  const loadMaintenances = useCallback(async () => {
+    if (!id) return
+    setLoadingMaint(true)
+    try {
+      const response = await api.get('/maintenance', {
+        params: {
+          equipmentId: id,
+          page: maintPage,
+          limit: MAINT_PER_PAGE,
+        }
+      })
+      setMaintenances(response.data.data)
+      if (response.data.meta) {
+        setMaintTotal(response.data.meta.total)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar manutenções', error)
+    } finally {
+      setLoadingMaint(false)
+    }
+  }, [id, maintPage])
+
+  useEffect(() => {
+    void loadMaintenances()
+  }, [loadMaintenances])
 
   const loadComponents = useCallback(async () => {
     if (!id) return
@@ -190,6 +217,7 @@ export default function EquipmentDetails(): React.JSX.Element {
               </div>
             </div>
             
+            {/* Histórico de Movimentações */}
             <div>
               <h3
                 ref={tableTitleRef}
@@ -202,9 +230,28 @@ export default function EquipmentDetails(): React.JSX.Element {
                 movements={movements} 
                 isLoading={loadingMoves} 
                 showEquipmentColumn={false}
-                currentPage={page}
-                totalPages={totalPages || 1}
-                onPageChange={(handlePageChange)}
+                currentPage={movePage}
+                totalPages={totalMovePages || 1}
+                onPageChange={(p) => setMovePage(p)}
+              />
+            </div>
+
+            {/* Histórico de Manutenções */}
+            <div>
+              <h3
+                ref={tableTitleRef}
+                className="text-lg font-bold text-gray-800 mb-4 pb-2"
+              >
+                Histórico de Manutenções
+              </h3>
+              
+              <MaintenancesTable 
+                maintenances={maintenances}
+                isLoading={loadingMaint}
+                currentPage={maintPage}
+                totalPages={totalMaintPages}
+                onPageChange={(p) => setMaintPage(p)}
+                onViewDetails={(id) => navigate(`/maintenance-details/${id}`)}
               />
             </div>
           </div>
