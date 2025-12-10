@@ -189,7 +189,9 @@ export function useEquipment(): UseEquipmentReturn {
   const deleteEquipment = async (id: string): Promise<void> => {
     try {
       setIsLoading(true)
-      await api.delete(`/equipment/${id}`)
+      await api.patch(`/equipment/${id}`,
+        { status: 'DESABILITADO' }
+      )
       setEquipments((prev) => prev.filter((eq) => eq.id !== id))
       console.log('[useEquipment] Equipamento deletado:', id)
     } catch (error) {
