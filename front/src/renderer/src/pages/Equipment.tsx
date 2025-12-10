@@ -37,8 +37,36 @@ function Equipment(): React.JSX.Element {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [activeFilters, setActiveFilters] = useState<FilterValues>({
     departmentId: '',
-    onlyActive: false
+    status: undefined
   })
+
+  const getStatusBadge = (status: string): React.JSX.Element => {
+    switch (status) {
+      case 'ATIVO':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+            <span className="w-1.5 h-1.5 rounded-full mr-1.5 bg-green-600"></span>
+            Ativo
+          </span>
+        )
+      case 'EM_MANUTENCAO':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+            <span className="w-1.5 h-1.5 rounded-full mr-1.5 bg-yellow-600"></span>
+            Em Manutenção
+          </span>
+        )
+      case 'DESABILITADO':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+            <span className="w-1.5 h-1.5 rounded-full mr-1.5 bg-red-600"></span>
+            Desabilitado
+          </span>
+        )
+      default:
+        return <span className="text-gray-500">-</span>
+    }
+  }
 
   useEffect(() => {
     void loadDepartments()
@@ -76,7 +104,7 @@ function Equipment(): React.JSX.Element {
   }
 
   const handleClearFilters = (): void => {
-    const emptyFilters = { departmentId: '', onlyActive: false }
+    const emptyFilters = { departmentId: '', status: undefined }
     setActiveFilters(emptyFilters)
     changePage(1)
   }
@@ -87,7 +115,7 @@ function Equipment(): React.JSX.Element {
       <Sidebar />
 
       {/* Conteúdo central da página */}
-      <div className="flex w-full max-w-[1400px] h-screen overflow-hidden py-20 px-8 flex-col items-start gap-2.5">
+      <main className="flex w-full max-w-[1400px] h-screen overflow-hidden py-20 px-8 flex-col items-start gap-2.5">
         <div className="flex flex-col w-full gap-2.5 shrink-0 top-[120px] bg-white pb-4 z-10">
           <h1 className="font-bold text-2xl leading-normal">Buscar Equipamentos</h1>
           <div className="flex flex-row gap-2.5 w-full">
@@ -147,7 +175,6 @@ function Equipment(): React.JSX.Element {
                     </td>
                   </tr>
                 ) : equipments.length === 0 ? (
-                  // ESTADO VAZIO (Com a lógica que você pediu)
                   <tr>
                     <td colSpan={5} className="text-center py-20">
                       <div className="flex flex-col items-center justify-center gap-2">
@@ -181,13 +208,7 @@ function Equipment(): React.JSX.Element {
                         {item.alocatedAt?.name || <span className="text-gray-400 italic">Não alocado</span>}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                          ${!item.disabled 
-                            ? 'bg-green-100 text-green-800 border border-green-200' 
-                            : 'bg-red-100 text-red-800 border border-red-200'}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${!item.disabled ? 'bg-green-600' : 'bg-red-600'}`}></span>
-                          {!item.disabled ? 'Ativo' : 'Desativado'}
-                        </span>
+                        {getStatusBadge(item.status)}
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
                         <div className="flex justify-end gap-2">
@@ -207,9 +228,13 @@ function Equipment(): React.JSX.Element {
                           </button>
                           <button 
                             onClick={() => handleDeleteClick(item.id, item.name)}
-                            className="p-1.5 text-red-600 hover:bg-red-50 rounded transition"
-                            title="Excluir"
-                          >
+                            disabled={item.status === 'EM_MANUTENCAO'}
+                            className={`p-1.5 rounded transition ${
+                              item.status === 'EM_MANUTENCAO' 
+                                ? 'text-gray-300 cursor-not-allowed' 
+                                : 'text-red-600 hover:bg-red-50'
+                            }`}
+                            title={item.status === 'EM_MANUTENCAO' ? "Finalize a manutenção antes de excluir" : "Excluir"}>
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -265,7 +290,7 @@ function Equipment(): React.JSX.Element {
           onApply={handleApplyFilters}
           onClear={handleClearFilters}
         />
-      </div>
+      </main>
     </div>
   )
 }

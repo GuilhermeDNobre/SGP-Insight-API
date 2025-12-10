@@ -59,15 +59,42 @@ async update(id: string, dto: UpdateDepartmentDto) {
 
 
   async findAll() {
-    return await this.prisma.department.findMany();
+    const departments = await this.prisma.department.findMany({
+      include: {
+        _count: {
+          select: { equipments: true } 
+        }
+      }
+    });
+
+    return departments.map(dept => {
+      const { _count, ...rest } = dept;
+      return {
+        ...rest,
+        equipmentCount: _count.equipments
+      };
+    });
   }
 
   async findOne(id: string) {
-    const department = await this.prisma.department.findUnique({ where: { id } });
+    const department = await this.prisma.department.findUnique({ 
+      where: { id },
+      include: {
+        _count: {
+          select: { equipments: true }
+        }
+      } 
+    });
+
     if (!department) {
       throw new NotFoundException(`Department with id ${id} not found`);
     }
-    return department;
+    
+    const { _count, ...rest } = department;
+    return {
+      ...rest,
+      equipmentCount: _count.equipments
+    };
   }
 
   async findIdByName(name: string) {

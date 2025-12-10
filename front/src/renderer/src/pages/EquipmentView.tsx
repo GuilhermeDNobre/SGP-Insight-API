@@ -1,7 +1,9 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useDepartment } from '@hooks/useDepartment'
 import { useEquipment } from '@hooks/useEquipment'
+import { useEquipmentMove } from '@hooks/useEquipmentMove'
+import MovementsTable from '@renderer/components/MovementsTable'
 import { ComponentData } from '@renderer/types/equipment'
 import Sidebar from '@renderer/components/Sidebar'
 import Button from '@renderer/components/Button'
@@ -21,8 +23,24 @@ export default function EquipmentDetails(): React.JSX.Element {
   const { id } = useParams<{ id: string }>()
   
   const { loadEquipmentById, equipment, isLoading } = useEquipment()
+  const { movements, loadMovements, isLoading: loadingMoves, totalMoves } = useEquipmentMove()
   const { departments, loadDepartments } = useDepartment()
   const [components, setComponents] = useState<ComponentData[]>([])
+
+  const [page, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 3
+  const totalPages = Math.ceil(totalMoves / ITEMS_PER_PAGE)
+  const tableTitleRef = useRef<HTMLHeadingElement>(null)
+  const handlePageChange = (newPage: number): void => {
+    setCurrentPage(newPage)
+
+    if (tableTitleRef.current) {
+      tableTitleRef.current.scrollIntoView({
+        behavior: 'smooth', 
+        block: 'start' 
+      })
+    }
+  }
 
   // Carrega Equipamento e Componentes
   useEffect(() => {
@@ -31,7 +49,21 @@ export default function EquipmentDetails(): React.JSX.Element {
       void loadEquipmentById(id)
       void loadComponents()
     }
-  }, [id, loadEquipmentById, loadDepartments])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
+
+  // Carrega movimentações
+  useEffect(() => {
+    if (id) {
+      void loadMovements({ 
+        equipmentId: id,
+        page: page,
+        limit: ITEMS_PER_PAGE,
+        orderBy: 'createdAt',
+        sort: 'desc'
+      })
+    }
+  }, [id, page, loadMovements])
 
   const loadComponents = useCallback(async () => {
     if (!id) return
@@ -120,10 +152,32 @@ export default function EquipmentDetails(): React.JSX.Element {
 
               <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                 <span className="text-xs font-bold text-gray-400 uppercase block mb-1">Status</span>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium mt-1
-                  ${!equipment.disabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  {!equipment.disabled ? 'Ativo' : 'Desativado'}
-                </span>
+                <div className="mt-1">
+                  {(() => {
+                    switch (equipment.status) {
+                      case 'ATIVO':
+                        return (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                            Ativo
+                          </span>
+                        )
+                      case 'EM_MANUTENCAO':
+                        return (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                            Em Manutenção
+                          </span>
+                        )
+                      case 'DESABILITADO':
+                        return (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200">
+                            Desabilitado
+                          </span>
+                        )
+                      default:
+                        return <span>-</span>
+                    }
+                  })()}
+                </div>
               </div>
             </div>
 
@@ -135,7 +189,24 @@ export default function EquipmentDetails(): React.JSX.Element {
                 <ComponentTable components={components} />
               </div>
             </div>
-
+            
+            <div>
+              <h3
+                ref={tableTitleRef}
+                className="text-lg font-bold text-gray-800 mb-4 pb-2"
+              >
+                Histórico de Movimentações
+              </h3>
+              
+              <MovementsTable 
+                movements={movements} 
+                isLoading={loadingMoves} 
+                showEquipmentColumn={false}
+                currentPage={page}
+                totalPages={totalPages || 1}
+                onPageChange={(handlePageChange)}
+              />
+            </div>
           </div>
         </div>
       </main>

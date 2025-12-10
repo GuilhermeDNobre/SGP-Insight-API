@@ -32,4 +32,20 @@ export class EmailService implements OnModuleInit {
       `,
     });
   }
+
+  async sendNewPasswordEmail(to: string, newPassword: string) {
+    if (!this.transporter) {
+      throw new Error('❌ Transporter não inicializado.');
+    }
+
+    return await this.transporter.sendMail({
+      from: `"Suporte" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: 'Sua nova senha',
+      html: `
+        <p>Sua nova senha foi gerada com sucesso. Use-a para acessar sua conta e altere-a após o login.</p>
+        <p><strong>Senha:</strong> ${newPassword}</p>
+      `,
+    });
+  }
 }

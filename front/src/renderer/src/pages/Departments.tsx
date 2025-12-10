@@ -3,7 +3,7 @@ import Button from '@renderer/components/Button'
 import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
 import ConfirmModal from '@renderer/components/ConfirmModal'
-import { Edit, Plus, Trash2 } from 'lucide-react'
+import { Eye, Edit, Plus, Trash2 } from 'lucide-react'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useSnackbar } from '@renderer/context/SnackbarContext'
@@ -114,6 +114,9 @@ function Departments(): React.JSX.Element {
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 border-b">
                     Email
                   </th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 border-b">
+                    Quantidade de Equipamentos
+                  </th>
                   <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700 border-b">
                     Ações
                   </th>
@@ -132,8 +135,18 @@ function Departments(): React.JSX.Element {
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {department.responsableEmail}
                     </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {department.equipmentCount}
+                    </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex justify-center gap-2">
+                        <button 
+                          onClick={() => navigate(`/department-details/${department.id}`)}
+                          className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition"
+                          title="Ver Detalhes"
+                        >
+                          <Eye size={16} />
+                        </button>
                         <button
                           onClick={() => navigate(`/department-edit/${department.id}`)}
                           className="p-2 text-blue-600 hover:bg-blue-100 rounded transition"
