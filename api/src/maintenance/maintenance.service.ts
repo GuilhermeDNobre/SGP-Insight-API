@@ -85,40 +85,38 @@ export class MaintenanceService {
       }
     }
 
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Cria a manutenção
+      const maintenance = await tx.maintenance.create({
+        data: {
+          technician: dto.technician,
+          contact: dto.contact,
+          description: dto.description,
+          status: MaintenanceStatus.ABERTA,
+          equipmentId: dto.equipmentId,
+        },
+      });
 
-    const maintenance = await this.prisma.maintenance.create({
-      data: {
-        technician: dto.technician,
-        contact: dto.contact,
-        description: dto.description,
-        status: MaintenanceStatus.ABERTA,
-        equipmentId: dto.equipmentId,
-      },
-    });
+      // 2. Vincula componentes
+      if (dto.componentIds?.length) {
+        await tx.maintenanceComponent.createMany({
+          data: dto.componentIds.map(componentId => ({
+            maintenanceId: maintenance.id,
+            componentId,
+          })),
+        });
+      } 
 
-    // Atualiza o status do equipamento para EM_MANUTENCAO
-    try {
-      await this.prisma.equipment.update({
+      // 3. Atualiza status do equipamento (Bloqueia)
+      await tx.equipment.update({
         where: { id: dto.equipmentId },
         data: { status: EquipmentStatus.EM_MANUTENCAO },
       });
-    } catch (err) {
-      // Não impedir criação da manutenção se atualização do equipamento falhar
-      console.error('Failed to update equipment status to EM_MANUTENCAO', err);
-    }
 
-    if (dto.componentIds?.length) {
-      await this.prisma.maintenanceComponent.createMany({
-        data: dto.componentIds.map(componentId => ({
-          maintenanceId: maintenance.id,
-          componentId,
-        })),
+      return tx.maintenance.findUnique({
+        where: { id: maintenance.id },
+        include: { components: { include: { component: true } } },
       });
-    } 
-
-    return this.prisma.maintenance.findUnique({
-      where: { id: maintenance.id },
-      include: { components: { include: { component: true } } },
     });
   }
 
@@ -191,29 +189,57 @@ export class MaintenanceService {
   async update(id: string, dto: UpdateMaintenanceDto) {
      await this.findOne(id)
 
-     return this.prisma.maintenance.update({
-      where: { id },
-      data: { 
-        technician: dto.technician,
-        contact: dto.contact,
-        description: dto.description,
-        status: dto.status ?? undefined,
-        finishedAt: dto.status === MaintenanceStatus.TERMINADA ? new Date() : undefined, 
-      },
-      include: { 
-        equipment: { select: { id: true, name: true, ean: true } },
-        components: { include: { component: true } } 
-      },
+     return this.prisma.$transaction(async (tx) => {
+        // 1. Atualiza a manutenção
+        const updatedMaintenance = await tx.maintenance.update({
+          where: { id },
+          data: { 
+            technician: dto.technician,
+            contact: dto.contact,
+            description: dto.description,
+            status: dto.status ?? undefined,
+            finishedAt: dto.status === MaintenanceStatus.TERMINADA ? new Date() : undefined, 
+          },
+          include: { 
+            equipment: { select: { id: true, name: true, ean: true } },
+            components: { include: { component: true } } 
+          },
+        });
+
+        // 2. Se o status mudou para TERMINADA, libera o equipamento
+        if (dto.status === MaintenanceStatus.TERMINADA) {
+           await tx.equipment.update({
+             where: { id: updatedMaintenance.equipmentId },
+             data: { status: EquipmentStatus.ATIVO }
+           });
+        }
+
+        return updatedMaintenance;
      });
   }
 
   async remove(id: string) {
-    await this.findOne(id)
-    await this.prisma.maintenanceComponent.deleteMany({
-      where: { maintenanceId: id },
-    });
+    const maintenance = await this.findOne(id);
 
-    return this.prisma.maintenance.delete({ where: { id } });
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Remove vínculos de componentes
+      await tx.maintenanceComponent.deleteMany({
+        where: { maintenanceId: id },
+      });
+
+      // 2. Remove a manutenção
+      const deleted = await tx.maintenance.delete({ where: { id } });
+
+      // 3. Se a manutenção removida NÃO estava terminada (ou seja, estava ativa), libera o equipamento
+      if (maintenance.status !== MaintenanceStatus.TERMINADA) {
+        await tx.equipment.update({
+          where: { id: maintenance.equipmentId },
+          data: { status: EquipmentStatus.ATIVO }
+        });
+      }
+
+      return deleted;
+    });
   }
 
   //marca como em andamento

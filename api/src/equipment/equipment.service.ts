@@ -78,7 +78,6 @@ export class EquipmentService {
     const data: any = {
       ...normalizedDto,
       status: prismaStatus,
-      disabled: prismaStatus === EquipmentStatus.DESABILITADO,
       createdAt: new Date(),
       disabledAt: prismaStatus === EquipmentStatus.DESABILITADO ? new Date() : null,
     };

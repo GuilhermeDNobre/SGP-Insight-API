@@ -152,10 +152,32 @@ export default function EquipmentDetails(): React.JSX.Element {
 
               <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                 <span className="text-xs font-bold text-gray-400 uppercase block mb-1">Status</span>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium mt-1
-                  ${!equipment.disabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  {!equipment.disabled ? 'Ativo' : 'Desativado'}
-                </span>
+                <div className="mt-1">
+                  {(() => {
+                    switch (equipment.status) {
+                      case 'ATIVO':
+                        return (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                            Ativo
+                          </span>
+                        )
+                      case 'EM_MANUTENCAO':
+                        return (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                            Em Manutenção
+                          </span>
+                        )
+                      case 'DESABILITADO':
+                        return (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200">
+                            Desabilitado
+                          </span>
+                        )
+                      default:
+                        return <span>-</span>
+                    }
+                  })()}
+                </div>
               </div>
             </div>
 

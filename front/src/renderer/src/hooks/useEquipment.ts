@@ -6,6 +6,7 @@ export interface EquipmentData {
   id: string
   name: string
   ean: string
+  status: string
   disabled: boolean
   createdAt: string
   disabledAt?: string | null
@@ -30,7 +31,7 @@ export interface UpdateEquipmentInput {
   name?: string
   ean?: string
   alocatedAtId?: string
-  disabled?: boolean
+  status?: string
 }
 
 interface FormErrors {
