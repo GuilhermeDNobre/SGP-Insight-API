@@ -5,7 +5,7 @@ import { DepartmentData } from '@hooks/useDepartment'
 
 export interface FilterValues {
     departmentId: string
-    onlyActive: boolean
+    status?: string
 }
 
 interface FilterModalProps {
@@ -51,28 +51,36 @@ export default function FilterModal({
     onApply,
     onClear
 }: FilterModalProps): React.JSX.Element | null {
-    
-    // Estados locais do modal
     const [selectedDep, setSelectedDep] = useState<string>('')
-    const [activeChecked, setActiveChecked] = useState<boolean>(false)
-    // Mantemos o estado visual do "Desativado", embora o back só suporte "onlyActive" por enquanto
-    const [disabledChecked, setDisabledChecked] = useState<boolean>(false) 
+    const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
 
     // Sincroniza o estado local com os filtros atuais quando o modal abre
     useEffect(() => {
         if (isOpen) {
             setSelectedDep(currentFilters.departmentId || '')
-            setActiveChecked(currentFilters.onlyActive)
-            setDisabledChecked(false) // Reset visual
+            if (currentFilters.status) {
+                setSelectedStatuses(currentFilters.status.split(','))
+            } else {
+                setSelectedStatuses([])
+            }
         }
     }, [isOpen, currentFilters])
 
     if (!isOpen) return null
 
+    const handleStatusChange = (status: string): void => {
+        if (selectedStatuses.includes(status)) {
+            // Se já tem, remove
+            setSelectedStatuses(prev => prev.filter(s => s !== status))
+        } else {
+            // Se não tem, adiciona
+            setSelectedStatuses(prev => [...prev, status])
+        }
+    }
+    
     const handleClearFilters = (): void => {
         setSelectedDep('')
-        setActiveChecked(false)
-        setDisabledChecked(false)
+        setSelectedStatuses([])
         onClear() // Avisa o pai para limpar
         onClose()
     }
@@ -80,10 +88,7 @@ export default function FilterModal({
     const handleConfirmFilters = (): void => {
         onApply({
             departmentId: selectedDep,
-            onlyActive: activeChecked 
-            // Nota: Se o usuário marcar "Desativado", a lógica atual do back 
-            // (onlyActive=false) mostra TUDO. Para filtrar APENAS desativados,
-            // precisaria de ajuste no back. Por ora, seguimos o onlyActive.
+            status: selectedStatuses.length > 0 ? selectedStatuses.join(',') : undefined
         })
         onClose()
     }
@@ -118,23 +123,21 @@ export default function FilterModal({
                         <StatusCheckbox 
                             label="Ativo" 
                             colorClass="bg-[var(--sucess)]"
-                            checked={activeChecked}
-                            onChange={() => setActiveChecked(!activeChecked)}
+                            checked={selectedStatuses.includes('ATIVO')}
+                            onChange={() => handleStatusChange('ATIVO')}
                         />
                         <StatusCheckbox 
                             label="Desativado" 
                             colorClass="bg-[var(--erro)]"
-                            checked={disabledChecked}
-                            onChange={() => setDisabledChecked(!disabledChecked)}
+                            checked={selectedStatuses.includes('DESABILITADO')}
+                            onChange={() => handleStatusChange('DESABILITADO')}
                         />
-                        
-                        {/* Mantidos visuais, mas desabilitados por enquanto conforme pedido */}
-                        <div className="opacity-50 pointer-events-none">
-                            <StatusCheckbox label="Disponível" colorClass="bg-blue-500" checked={false} onChange={()=>{}} />
-                        </div>
-                        <div className="opacity-50 pointer-events-none">
-                            <StatusCheckbox label="Em Manutenção" colorClass="bg-[var(--atencio)]" checked={false} onChange={()=>{}} />
-                        </div>
+                        <StatusCheckbox 
+                            label="Em Manutenção"
+                            colorClass="bg-[var(--atencio)]" 
+                            checked={selectedStatuses.includes('EM_MANUTENCAO')}
+                            onChange={() => handleStatusChange('EM_MANUTENCAO')}
+                        />
                     </div>
                 </div>
 

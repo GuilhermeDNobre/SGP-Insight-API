@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useSnackbar } from '@renderer/context/SnackbarContext'
 import { useDepartment } from '@hooks/useDepartment'
 import { useEquipment } from '@hooks/useEquipment'
-import { ComponentData } from '../types/equipment'
+import { ComponentData, EquipmentStatus } from '../types/equipment'
 import Input from '@renderer/components/Input'
 import Sidebar from '@renderer/components/Sidebar'
 import AddComponentModal from '@renderer/components/AddComponentModal'
@@ -37,7 +37,7 @@ export default function EditEquipment(): React.JSX.Element {
     name: '',
     ean: '',
     alocatedAtId: '',
-    disabled: false
+    status: 'ATIVO' as EquipmentStatus
   })
 
   // Lista Visual de Componentes (Mistura os do banco com os novos temporários)
@@ -69,8 +69,7 @@ export default function EditEquipment(): React.JSX.Element {
         name: equipment.name,
         ean: equipment.ean,
         alocatedAtId: equipment.alocatedAtId,
-        disabled: equipment.disabled
-      })
+        status: equipment.status ? (equipment.status as EquipmentStatus) : 'ATIVO'      })
     }
   }, [equipment])
 
@@ -162,7 +161,7 @@ export default function EditEquipment(): React.JSX.Element {
         name: formData.name,
         ean: formData.ean,
         alocatedAtId: formData.alocatedAtId,
-        disabled: formData.disabled
+        status: formData.status
       })
 
       // 2. Processa Componentes em Paralelo
@@ -197,7 +196,7 @@ export default function EditEquipment(): React.JSX.Element {
 
       await Promise.all(promises)
       
-      showSnackbar('Equipamento criado com sucesso!', 'success')
+      showSnackbar('Equipamento atualizado com sucesso!', 'success')
       setTimeout(() => navigate('/equipments'), 1500)
 
     } catch (error) {
@@ -275,20 +274,31 @@ export default function EditEquipment(): React.JSX.Element {
                   </select>
                 </div>
               </div>
+            </div>
 
-              {/* Status (Visível apenas na edição) */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-black">Status</label>
-                <select
-                  name="disabled"
-                  value={formData.disabled ? 'true' : 'false'}
-                  onChange={(e) => setFormData(prev => ({ ...prev, disabled: e.target.value === 'true' }))}
-                  className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                >
-                  <option value="false">Ativo</option>
-                  <option value="true">Desativado</option>
-                </select>
-              </div>
+            {/* Status (Visível apenas na edição) */}
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-black">Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as EquipmentStatus }))}
+                disabled={formData.status === 'EM_MANUTENCAO'}
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                // Se estiver em manutenção, bloqueia a edição manual para evitar inconsistência
+              >
+                <option value="ATIVO">Ativo</option>
+                <option value="DESABILITADO">Desabilitado</option>
+                  {formData.status === 'EM_MANUTENCAO' && (
+                    <option value="EM_MANUTENCAO" disabled>Em Manutenção (Gerenciado pelo sistema)</option>
+                  )}
+              </select>
+                
+              {formData.status === 'EM_MANUTENCAO' && (
+                 <p className="text-xs text-yellow-600 mt-1">
+                   Este equipamento está em manutenção. Finalize a manutenção para torná-lo ativo novamente.
+                 </p>
+              )}
             </div>
 
             {/* --- Seção 2: Componentes --- */}

@@ -5,6 +5,8 @@ import { UpdateEquipmentDto } from './dto/update-equipment.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { EquipmentStatus } from '@prisma/client';
+import { EquipmentFiltersDto } from './dto/equipment-filters.dto';
 
 @Controller('equipment')
 export class EquipmentController {
@@ -30,10 +32,10 @@ export class EquipmentController {
   @ApiQuery({ name: 'name', required: false, type: String })
   @ApiQuery({ name: 'ean', required: false, type: String })
   @ApiQuery({ name: 'alocatedAtId', required: false, type: String })
-  @ApiQuery({ name: 'onlyActive', required: false, type: Boolean })
-  @ApiQuery({ name: 'search', required: false, type: Boolean })
-  findAll(@Query() query: any) {
-    const { page, limit, name, ean, alocatedAtId, onlyActive, search } = query;
+  @ApiQuery({ name: 'status', enum: EquipmentStatus, required: false, description: "Filter by equipment status: 'ATIVO' | 'EM_MANUTENCAO' | 'DESABILITADO'", type: String })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  findAll(@Query() query: EquipmentFiltersDto) {
+    const { page, limit, name, ean, alocatedAtId, status, search } = query;
 
     return this.equipmentService.findAll({
       page: Number(page) || 1,
@@ -41,7 +43,7 @@ export class EquipmentController {
       name: name || undefined,
       ean: ean || undefined,
       alocatedAtId: alocatedAtId || undefined,
-      onlyActive: onlyActive === 'true' || false,
+      status: status || undefined,
       search: search || undefined,
     });
   }
@@ -75,12 +77,13 @@ export class EquipmentController {
   }
 
 
-  @Patch(':id/disable')
+  @Patch(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Disable (soft delete) an equipment' })
-  disable(@Param('id')id: string){
-    return this.equipmentService.softRemove(id)
+  @ApiOperation({ summary: 'Change equipment status (ATIVO | EM_MANUTENCAO | DESABILITADO)' })
+  @ApiBody({ schema: { type: 'object', properties: { status: { type: 'string', enum: ['ATIVO','EM_MANUTENCAO','DESABILITADO'] } } } })
+  changeStatus(@Param('id') id: string, @Body('status') status: EquipmentStatus) {
+    return this.equipmentService.setStatus(id, status as any);
   }
 
 

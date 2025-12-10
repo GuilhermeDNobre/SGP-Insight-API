@@ -5,13 +5,16 @@ import DeleteProfile from '@pages/DeleteProfile'
 import Departments from '@pages/Departments'
 import EditDepartment from '@pages/EditDepartment'
 import EditEquipment from '@pages/EditEquipment'
+import EditMaintenance from '@pages/EditMaintenance'
 import EditProfile from '@pages/EditProfile'
 import Equipment from '@pages/Equipment'
 import EquipmentDetails from '@pages/EquipmentView'
 import DepartmentDetails from '@pages/DepartmentView'
+import MaintenanceDetails from '@pages/MaintenanceView'
 import Home from '@pages/Home'
 import Login from '@pages/Login'
 import Maintenance from '@pages/Maintenance'
+import CreateMaintenance from '@pages/CreateMaintenance'
 import Profile from '@pages/Profile'
 import Register from '@pages/Register'
 import CreateUser from '@renderer/pages/CreateUser'
@@ -25,7 +28,6 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/" element={<Login />} />
       <Route path="/Register" element={<Register />} />
       <Route path="/Home" element={<Home />} />
-      <Route path="/maintenance" element={<Maintenance />} />
       <Route path="/alerts" element={<Alerts />} />
 
       {/* Equipamentos */}
@@ -39,6 +41,12 @@ export default function AppRoutes(): React.JSX.Element {
       <Route path="/department-create" element={<CreateDepartment />} />
       <Route path="/department-edit/:id" element={<EditDepartment />} />
       <Route path="/department-details/:id" element={<DepartmentDetails />} />
+
+      {/* Manutenções */}
+      <Route path="/maintenance" element={<Maintenance />} />
+      <Route path="/maintenance-create" element={<CreateMaintenance />} />
+      <Route path="/maintenance-edit/:id" element={<EditMaintenance />} />
+      <Route path="/maintenance-details/:id" element={<MaintenanceDetails />} />
 
       {/* Perfil e Usuários */}
       <Route path="/profile" element={<Profile />} />
