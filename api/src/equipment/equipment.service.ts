@@ -106,6 +106,9 @@ export class EquipmentService {
   }
 
   async findAll(filters: EquipmentFilters) {
+    console.log('Filtros Recebidos:', filters);
+    console.log('Status Bruto:', filters.status);
+
     const {
       page = 1,
       limit = 10,
@@ -126,12 +129,21 @@ export class EquipmentService {
     };
 
     if (status) {
-      const prismaStatus = this.mapToPrismaStatus(status);
-      if (prismaStatus) where.status = prismaStatus;
+      const statusList = status.split(','); 
+
+      const validStatuses = statusList
+        .map(s => this.mapToPrismaStatus(s.trim()))
+        .filter(s => s !== null); // Remove inválidos
+
+      if (validStatuses.length > 0) {
+        where.status = { in: validStatuses };
+      }
     } else if (onlyActive !== undefined) {
       // Retrocompatibilidade: se onlyActive for true, pega tudo que NÃO é desabilitado
       where.status = onlyActive ? { not: EquipmentStatus.DESABILITADO } : undefined;
     }
+
+    console.log('Where Clause Final:', JSON.stringify(where, null, 2));
 
     if (search) {
       const normalizedSearch = normalizeString(search);

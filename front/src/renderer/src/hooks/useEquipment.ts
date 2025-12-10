@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import api from '../services/api'
-import { ComponentData } from '../types/equipment';
+import { ComponentData, EquipmentStatus } from '../types/equipment';
 
 export interface EquipmentData {
   id: string
@@ -31,7 +31,7 @@ export interface UpdateEquipmentInput {
   name?: string
   ean?: string
   alocatedAtId?: string
-  status?: string
+  status?: EquipmentStatus
 }
 
 interface FormErrors {
@@ -40,6 +40,10 @@ interface FormErrors {
   alocatedAtId?: string
 }
 
+interface EquipmentFilters {
+  departmentId?: string
+  status?: string // Agora aceita string (ex: "ATIVO,EM_MANUTENCAO")
+}
 interface UseEquipmentReturn {
   equipments: EquipmentData[]
   equipment: EquipmentData | null
@@ -49,7 +53,7 @@ interface UseEquipmentReturn {
   loadEquipments: (
     page?: number,
     search?: string,
-    filters?: { departmentId?: string, onlyActive?: boolean }
+    filters?: EquipmentFilters
   ) => Promise<void>
   loadEquipmentById: (id: string) => Promise<void>
   createEquipment: (data: CreateEquipmentInput) => Promise<EquipmentData>
@@ -72,28 +76,26 @@ export function useEquipment(): UseEquipmentReturn {
   const [totalItems, setTotalItems] = useState(0);
 
   const loadEquipments = useCallback(async (
-    pageToLoad = 1,
-    search = '',
-    filters = { departmentId: '', onlyActive: false }
+    pageToLoad:  number = 1,
+    search : string = '',
+    filters : EquipmentFilters = {}
   ): Promise<void> => {
     try {
       setIsLoading(true)
 
-      let url = `/equipment?page=${pageToLoad}&limit=10`
-      if (search) {
-        url += `&search=${encodeURIComponent(search)}`
+      const params = {
+        page: pageToLoad,
+        limit: 10,
+        search: search || undefined,
+        alocatedAtId: filters.departmentId || undefined,
+        status: filters.status || undefined // Passa a string direta para o back
       }
-      if (filters.departmentId) {
-        url += `&alocatedAtId=${filters.departmentId}`
-      }
-      if (filters.onlyActive) {
-        url += `&onlyActive=true`
-      }
-      
-      const response = await api.get(url);      // API returns paginated response: { data: [...], meta: {...} }
-      const data =
-        response.data?.data && Array.isArray(response.data.data) ? response.data.data : []
+
+      const response = await api.get('/equipment', { params });
+
+      const data = response.data?.data && Array.isArray(response.data.data) ? response.data.data : []
       const meta = response.data?.meta
+      
       setEquipments(data)
 
       if (meta) {
@@ -187,7 +189,7 @@ export function useEquipment(): UseEquipmentReturn {
   const deleteEquipment = async (id: string): Promise<void> => {
     try {
       setIsLoading(true)
-      await api.patch(`/equipment/${id}/disable`)
+      await api.delete(`/equipment/${id}`)
       setEquipments((prev) => prev.filter((eq) => eq.id !== id))
       console.log('[useEquipment] Equipamento deletado:', id)
     } catch (error) {
@@ -212,6 +214,6 @@ export function useEquipment(): UseEquipmentReturn {
     page,
     totalPages,
     totalItems,
-    changePage: loadEquipments
+    changePage: (newPage) => loadEquipments(newPage)
   }
 }

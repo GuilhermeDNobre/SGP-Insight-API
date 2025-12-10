@@ -11,12 +11,13 @@ import {
   Wrench
 } from 'lucide-react'
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import ConfirmModal from '@components/ConfirmModal'
 
 export default function Sidebar(): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [isExitModalOpen, setIsExitModalOpen] = useState(false)
   const handleConfirmExit = (): void => {
@@ -24,11 +25,24 @@ export default function Sidebar(): React.JSX.Element {
     navigate('/') // volta para a tela de login
   }
 
+  const isCurrentPath = (path: string): boolean => {
+    // Ajuste fino para a Home não ficar ativa em outras rotas se a home for apenas "/"
+    if (path === '/Home' && location.pathname === '/Home') return true
+    
+    // Para as outras rotas, verifica se o caminho atual começa com o caminho do item
+    return location.pathname.startsWith(path)
+  }
+
   return (
     <>
       {/* Botão de abrir menu */}
       <div className="fixed top-2 left-2 p-2 rounded-md transition transform hover:scale-95 z-30">
-        <SidebarItem icon={<Menu size={20} />} label="Menu" onClick={() => setIsOpen(true)} />
+        <SidebarItem 
+          icon={<Menu size={20} />} 
+          label="Menu" 
+          onClick={() => setIsOpen(true)} 
+          className="text-(--pri)! hover:bg-gray-200"
+        />
       </div>
 
       {/* Overlay escurecido */}
@@ -54,6 +68,7 @@ export default function Sidebar(): React.JSX.Element {
           <SidebarItem
             icon={<User size={25} />}
             label="Meu Perfil"
+            isActive={isCurrentPath('/profile')}
             onClick={() => {
               navigate('/profile')
             }}
@@ -65,6 +80,7 @@ export default function Sidebar(): React.JSX.Element {
           <SidebarItem
             icon={<Home size={25} />}
             label="Início"
+            isActive={isCurrentPath('/Home')}
             onClick={() => {
               navigate('/Home')
             }}
@@ -72,6 +88,7 @@ export default function Sidebar(): React.JSX.Element {
           <SidebarItem
             icon={<MonitorCog size={25} />}
             label="Equipamentos"
+            isActive={isCurrentPath('/equipments')}
             onClick={() => {
               navigate('/equipments')
             }}
@@ -79,6 +96,7 @@ export default function Sidebar(): React.JSX.Element {
           <SidebarItem
             icon={<Building2 size={25} />}
             label="Departamentos"
+            isActive={isCurrentPath('/departments')}
             onClick={() => {
               navigate('/departments')
             }}
@@ -86,6 +104,7 @@ export default function Sidebar(): React.JSX.Element {
           <SidebarItem
             icon={<Wrench size={25} />}
             label="Manutenções"
+            isActive={isCurrentPath('/maintenance')}
             onClick={() => {
               navigate('/maintenance')
             }}
@@ -93,6 +112,7 @@ export default function Sidebar(): React.JSX.Element {
           <SidebarItem
             icon={<TriangleAlert size={25} />}
             label="Alertas"
+            isActive={isCurrentPath('/alerts')}
             onClick={() => {
               setIsOpen(true)
               navigate('/alerts')
@@ -105,6 +125,7 @@ export default function Sidebar(): React.JSX.Element {
           <SidebarItem
             icon={<LogOut size={25} />}
             label="Sair"
+            className="text-red-300 hover:bg-red-500/10 hover:text-red-200"
             onClick={() => {
               setIsExitModalOpen(true)
             }}
@@ -128,17 +149,29 @@ export default function Sidebar(): React.JSX.Element {
 function SidebarItem({
   icon,
   label,
-  onClick
+  onClick,
+  isActive = false,
+  className = ''
 }: {
   icon: React.ReactNode
   label: string
   onClick: () => void
+  isActive?: boolean
+  className?: string
 }): React.JSX.Element {
   return (
     <button
       onClick={onClick}
-      className="flex items-center w-full text-left gap-3 px-4 py-2 rounded-md hover:bg-white/10 transition cursor-pointer"
+      className={`
+        flex items-center w-full text-left gap-3 px-4 py-2 rounded-md transition-all duration-200 cursor-pointer
+        ${isActive 
+            ? 'bg-white text-(--pri) font-bold shadow-md ' // Estilo Ativo: Fundo Branco, Texto Cor Primária
+            : 'text-white hover:bg-white/10' // Estilo Inativo
+        }
+        ${className} 
+      `}
     >
+      {/* O ícone herda a cor do texto automaticamente */}
       {icon}
       <span>{label}</span>
     </button>

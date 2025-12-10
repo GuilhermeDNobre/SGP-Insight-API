@@ -37,7 +37,7 @@ function Equipment(): React.JSX.Element {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [activeFilters, setActiveFilters] = useState<FilterValues>({
     departmentId: '',
-    onlyActive: false
+    status: undefined
   })
 
   const getStatusBadge = (status: string): React.JSX.Element => {
@@ -104,7 +104,7 @@ function Equipment(): React.JSX.Element {
   }
 
   const handleClearFilters = (): void => {
-    const emptyFilters = { departmentId: '', onlyActive: false }
+    const emptyFilters = { departmentId: '', status: undefined }
     setActiveFilters(emptyFilters)
     changePage(1)
   }
