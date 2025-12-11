@@ -6,7 +6,8 @@ import Sidebar from '@renderer/components/Sidebar'
 import Button from '@renderer/components/Button'
 import Input from '@renderer/components/Input'
 import ConfirmModal from '@renderer/components/ConfirmModal'
-import { Plus, Eye, Edit, Trash2, CheckCircle } from 'lucide-react'
+import MaintenanceFilterModal, { MaintenanceFilterValues } from '@renderer/components/MaintenanceFilterModal'
+import { Plus, Eye, Edit, Trash2, CheckCircle, ListFilter } from 'lucide-react'
 
 export default function Maintenances(): React.JSX.Element {
   const navigate = useNavigate()
@@ -24,6 +25,32 @@ export default function Maintenances(): React.JSX.Element {
   } = useMaintenance()
 
   const [searchTerm, setSearchTerm] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
+  
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  const [activeFilters, setActiveFilters] = useState<MaintenanceFilterValues>({})
+
+  useEffect(() => {
+    void loadMaintenances(page, appliedSearch, activeFilters)
+  }, [loadMaintenances, page, appliedSearch, activeFilters])
+
+  const handleSearchTrigger = (): void => {
+    setAppliedSearch(searchTerm)
+    changePage(1)
+  }
+
+  const handleApplyFilters = (filters: MaintenanceFilterValues): void => {
+    setActiveFilters(filters)
+    void loadMaintenances(1, searchTerm, filters)
+    setIsFilterModalOpen(false)
+  }
+
+  const handleClearFilters = (): void => {
+    setActiveFilters({})
+    changePage(1)
+    setIsFilterModalOpen(false)
+  }
+
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [finishModalOpen, setFinishModalOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -31,10 +58,6 @@ export default function Maintenances(): React.JSX.Element {
   useEffect(() => {
     void loadMaintenances(page, searchTerm)
   }, [loadMaintenances, page]) // Remova searchTerm daqui se quiser buscar só no Enter
-
-  const handleSearch = (): void => {
-    void loadMaintenances(1, searchTerm)
-  }
 
   // --- Handlers de Ação ---
   const handleOpenDelete = (id: string): void => {
@@ -75,6 +98,14 @@ export default function Maintenances(): React.JSX.Element {
     }
   }
 
+  const clearFilter = (key: keyof MaintenanceFilterValues): void => {
+    setActiveFilters(prev => {
+      const newFilters = { ...prev };
+      delete newFilters[key]; // Remove a chave fisicamente do objeto
+      return newFilters;
+    });
+  };
+    
   return (
     <div className="w-screen h-screen bg-white flex justify-center items-center relative py-[120px]">
       <Sidebar />
@@ -88,8 +119,8 @@ export default function Maintenances(): React.JSX.Element {
               placeholder="Buscar por técnico ou equipamento..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)} // Atualiza estado
-              onKeyDown={e => {
-                if (e.key === 'Enter') handleSearch() // Busca ao dar Enter
+              onKeyDown={(e) => { 
+                e.key === 'Enter' &&handleSearchTrigger() // Busca ao dar Enter
               }}
               labelVariant="default"
               className="h-[30px] flex-1"
@@ -97,11 +128,56 @@ export default function Maintenances(): React.JSX.Element {
             />
             <Button 
               label="Nova Manutenção"
+              variant='secondary'
               onClick={() => navigate('/maintenance-create')}
               className="h-10h-[30px] w-[196px] whitespace-nowrap"
               endIcon={<Plus size={18} />}
             />
+            <Button
+              label="Filtrar"
+              variant="primary"
+              endIcon={<ListFilter size={16} />}
+              className={`h-[30px] ${Object.keys(activeFilters).length > 0 ? 'ring-2 ring-blue-500 border-blue-500' : ''}`}
+              onClick={() => setIsFilterModalOpen(true)}
+            />
           </div>
+          {(activeFilters.status || activeFilters.openDate || activeFilters.closeDate) && (
+            <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-gray-100">
+              <span className="text-xs text-gray-500 font-medium">Filtros ativos:</span>
+              
+              {activeFilters.status && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs border border-blue-100">
+                  <span className="font-semibold">Status:</span> 
+                  {activeFilters.status.split(',').map(s => s.replace('_', ' ')).join(', ').toLowerCase()}
+                  <button onClick={() => clearFilter('status')} className="ml-1 hover:text-blue-900 font-bold">×</button>
+                </span>
+              )}
+
+              {activeFilters.openDate && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-50 text-green-700 text-xs border border-green-100">
+                  <span className="font-semibold">Abertura:</span> 
+                  {/* Força o display da string exata para não confundir visualmente */}
+                  {activeFilters.openDate.split('-').reverse().join('/')}
+                  <button onClick={() => clearFilter('openDate')} className="ml-1 hover:text-green-900 font-bold">×</button>
+                </span>
+              )}
+
+              {activeFilters.closeDate && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-orange-50 text-orange-700 text-xs border border-orange-100">
+                  <span className="font-semibold">Conclusão:</span> 
+                  {activeFilters.closeDate.split('-').reverse().join('/')}
+                  <button onClick={() => clearFilter('closeDate')} className="ml-1 hover:text-orange-900 font-bold">×</button>
+                </span>
+              )}
+
+              <button 
+                onClick={handleClearFilters}
+                className="text-xs text-red-500 hover:text-red-700 hover:underline ml-2 font-medium"
+              >
+                Limpar tudo
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Tabela */}
@@ -124,7 +200,7 @@ export default function Maintenances(): React.JSX.Element {
                       <td colSpan={5} className="text-center py-20">
                         <div className="flex flex-col justify-center items-center gap-3">
                           <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
-                        <p className="text-gray-500 text-lg">Carregando equipamentos...</p>
+                        <p className="text-gray-500 text-lg">Carregando manutenções...</p>
                       </div>
                     </td>
                   </tr>
@@ -244,6 +320,14 @@ export default function Maintenances(): React.JSX.Element {
         />
 
       </main>
+
+      <MaintenanceFilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        currentFilters={activeFilters}
+        onApply={handleApplyFilters}
+        onClear={handleClearFilters}
+      />
     </div>
   )
 }

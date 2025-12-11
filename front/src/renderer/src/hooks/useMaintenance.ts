@@ -1,13 +1,7 @@
 import { useState, useCallback } from 'react'
 import api from '../services/api'
 import { Maintenance, CreateMaintenanceInput, UpdateMaintenanceInput } from '../types/maintenance'
-
-/*interface MaintenanceFilters {
-  page?: number
-  limit?: number
-  search?: string // Pode buscar por técnico ou equipamento
-  status?: string
-}*/
+import { MaintenanceFilterValues } from '@renderer/components/MaintenanceFilterModal'
 
 export function useMaintenance(): {
   maintenances: Maintenance[], 
@@ -16,7 +10,7 @@ export function useMaintenance(): {
   page: number, 
   totalPages: number, 
   changePage: (page: number) => Promise<void>,
-  loadMaintenances: (page: number, search?: string, status?: string) => Promise<void>,
+  loadMaintenances: (page: number, search?: string, filters?: MaintenanceFilterValues) => Promise<void>,
   loadMaintenanceById: (id: string) => Promise<void>,
   createMaintenance: (data: CreateMaintenanceInput) => Promise<void>,
   updateMaintenance: (id: string, data: UpdateMaintenanceInput) => Promise<void>,
@@ -32,19 +26,31 @@ export function useMaintenance(): {
   const [totalPages, setTotalPages] = useState(1);
   const [ , setTotalItems] = useState(0);
 
-  const loadMaintenances = useCallback(async (pageToLoad = 1, search = '', status = '') => {
+  const loadMaintenances = useCallback(async (
+    pageToLoad: number = 1, 
+    search: string = '', 
+    filters: MaintenanceFilterValues = {}
+  ) => {
     try {
       setIsLoading(true)
-      let url = `/maintenance?page=${pageToLoad}&limit=10`
-      if (search) url += `&search=${encodeURIComponent(search)}`
-      if (status) url += `&status=${status}`
 
-      const response = await api.get(url)
+      const params = {
+        page: pageToLoad,
+        limit: 10,
+        search: search || undefined,
+        status: filters.status || undefined,
+        openDate: filters.openDate || undefined,
+        closeDate: filters.closeDate || undefined
+      }
+
+      const response = await api.get('/maintenance', { params })
       
       setMaintenances(response.data.data)
-      setTotalPages(response.data.meta.lastPage)
-      setTotalItems(response.data.meta.total)
-      setPage(response.data.meta.page)
+      if (response.data.meta) {
+        setTotalPages(response.data.meta.lastPage)
+        setTotalItems(response.data.meta.total)
+        setPage(response.data.meta.page)
+      }
     } catch (error) {
       console.error('Erro ao carregar manutenções', error)
     } finally {
@@ -82,11 +88,9 @@ export function useMaintenance(): {
     }
   }
 
-  // Ação Especial: Finalizar
   const finishMaintenance = async (id: string): Promise<void> => {
     try {
       setIsLoading(true)
-      // Geralmente há uma rota específica ou um patch com status TERMINADA
       await api.patch(`/maintenance/${id}/finish`) 
     } finally {
       setIsLoading(false)
@@ -97,6 +101,7 @@ export function useMaintenance(): {
     try {
       setIsLoading(true)
       await api.delete(`/maintenance/${id}`)
+      setMaintenances(prev => prev.filter(m => m.id !== id))
     } finally {
       setIsLoading(false)
     }
@@ -108,7 +113,7 @@ export function useMaintenance(): {
     isLoading,
     page,
     totalPages,
-    changePage: loadMaintenances, // Alias
+    changePage: (p) => loadMaintenances(p),
     loadMaintenances,
     loadMaintenanceById,
     createMaintenance,

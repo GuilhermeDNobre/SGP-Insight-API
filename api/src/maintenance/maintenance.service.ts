@@ -139,6 +139,35 @@ export class MaintenanceService {
       ];
     }
 
+    // Função auxiliar que calcula o intervalo completo do dia, 
+    // permitindo que o Node.js calcule o Fuso Horário da API (que é geralmente UTC)
+    const getCompensatedRange = (dateStr: string) => {
+      const start = new Date(dateStr); 
+      start.setUTCHours(3, 0, 0, 0); 
+
+      const end = new Date(dateStr);
+      end.setDate(end.getDate() + 1); // Avança um dia
+      end.setUTCHours(3, 0, 0, 0); // Define para 03:00:00 UTC do dia seguinte (que é 00:00 BRT do dia seguinte)
+
+      console.log(`[DEBUG DATE - BRASIL GMT-3] Buscando range para ${dateStr}:`);
+      // Deve mostrar algo como "Mon Dec 09 2025 00:00:00 GMT+0000 (Coordinated Universal Time)"
+      console.log(` > De: ${start.toISOString()}`); // Deve ser 2025-12-09T00:00:00.000Z
+      console.log(` > Até: ${end.toISOString()}`);   // Deve ser 2025-12-10T00:00:00.000Z
+
+      return {
+        gte: start,
+        lt: end
+      };
+    };
+
+    if (query.openDate) {
+      where.createdAt = getCompensatedRange(query.openDate);
+    }
+
+    if (query.closeDate) {
+      where.finishedAt = getCompensatedRange(query.closeDate);
+    }
+
     const [items, total] = await this.prisma.$transaction([
       this.prisma.maintenance.findMany({
         where,
@@ -159,6 +188,7 @@ export class MaintenanceService {
       this.prisma.maintenance.count({ where }),
     ]);
 
+    console.log('Where Clause Final:', JSON.stringify(where, null, 2));
     return {
       data: items,
       meta: {
