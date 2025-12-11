@@ -35,4 +35,12 @@ export class MaintenanceFiltersDto {
   @Type(() => Number)
   @Min(1)
   limit?: number = 10;
+
+  @IsOptional()
+  @IsString()
+  openDate?: string;
+
+  @IsOptional()
+  @IsString()
+  closeDate?: string;
 }

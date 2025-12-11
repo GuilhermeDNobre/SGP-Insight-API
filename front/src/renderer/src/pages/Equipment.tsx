@@ -31,6 +31,9 @@ function Equipment(): React.JSX.Element {
   } = useEquipment()
 
   const { departments, loadDepartments } = useDepartment() // Para preencher o select do modal de filtragem
+  const getDepartmentName = (id: string): string => {
+    return departments.find(d => d.id === id)?.name || 'Departamento Desconhecido'
+  }
 
   const [searchTerm, setSearchTerm] = useState<string>('')
 
@@ -147,6 +150,48 @@ function Equipment(): React.JSX.Element {
               onClick={() => setIsFilterModalOpen(true)}
             />
           </div>
+
+          {(activeFilters.status || activeFilters.departmentId) && (
+            <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-gray-100">
+              <span className="text-xs text-gray-500 font-medium">Filtros ativos:</span>
+              
+              {/* Chip de Status */}
+              {activeFilters.status && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs border border-blue-100">
+                  <span className="font-semibold">Status:</span>
+                  {activeFilters.status.split(',').join(', ').toLowerCase()}
+                  <button 
+                    onClick={() => setActiveFilters(prev => ({ ...prev, status: undefined }))} // Remove só o status
+                    className="ml-1 hover:text-blue-900"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {/* Chip de Departamento */}
+              {activeFilters.departmentId && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-purple-50 text-purple-700 text-xs border border-purple-100">
+                  <span className="font-semibold">Departamento:</span> 
+                  {getDepartmentName(activeFilters.departmentId)}
+                  <button 
+                    onClick={() => setActiveFilters(prev => ({ ...prev, departmentId: '' }))} 
+                    className="ml-1 hover:text-purple-900"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {/* Botão Limpar Tudo */}
+              <button 
+                onClick={handleClearFilters}
+                className="text-xs text-red-500 hover:text-red-700 hover:underline ml-2 font-medium"
+              >
+                Limpar tudo
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow border border-gray-200 flex flex-col flex-1 overflow-hidden w-full">
@@ -158,7 +203,7 @@ function Equipment(): React.JSX.Element {
                 <tr>
                   <th className="px-6 py-4">Modelo / Nome</th>
                   <th className="px-6 py-4">EAN</th>
-                  <th className="px-6 py-4">Setor</th>
+                  <th className="px-6 py-4">Departamento</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-right">Ações</th>
                 </tr>
