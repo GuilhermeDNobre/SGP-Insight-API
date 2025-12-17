@@ -36,15 +36,39 @@ export class MaintenanceService {
     });
 
     if (recentMaintenances.length) {
+      const now = new Date();
+      const trimestre = Math.floor(now.getMonth() / 3) + 1;
+
+      // verifica se já houve alertas para este equipamento para calcular recorrência
+      const lastAlert = await this.prisma.alerts.findFirst({
+        where: { equipmentId: dto.equipmentId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      let occurrenceCount = 0;
+      let lastRecurrenceAt: string | undefined = undefined;
+
+      if (lastAlert) {
+        occurrenceCount = (lastAlert.occurrenceCount ?? 0) + 1;
+        lastRecurrenceAt = lastAlert.lastRecurrenceAt
+          ? new Date(lastAlert.lastRecurrenceAt).toISOString()
+          : new Date(lastAlert.createdAt).toISOString();
+      }
+
       const alertDto: CreateAlertDto = {
         severity: AlertSeverity.HIGH,
         description: `O equipamento ${equipment.name} do setor ${equipment.alocatedAt?.name ?? 'desconhecido'} possui manutenções frequentes realizadas`,
+        equipmentId: dto.equipmentId,
+        componentId: dto.componentIds && dto.componentIds.length === 1 ? dto.componentIds[0] : undefined,
+        trimestre,
+        lastRecurrenceAt,
+        occurrenceCount,
       };
 
       try {
         await this.alertsService.create(alertDto as any);
       } catch (err) {
-          console.error('Failed to create alert', err)
+        console.error('Failed to create alert', err);
       }
     }
     
@@ -58,9 +82,13 @@ export class MaintenanceService {
       });
 
       if (deptMaintCount > 3) {
+        const now = new Date();
+        const trimestre = Math.floor(now.getMonth() / 3) + 1;
+
         const deptAlertDto: CreateAlertDto = {
           severity: AlertSeverity.MEDIUM,
           description: `Departamento ${equipment.alocatedAt?.name ?? 'desconhecido'} possui manutenções frequentes nos últimos meses`,
+          trimestre,
         };
 
         try {
