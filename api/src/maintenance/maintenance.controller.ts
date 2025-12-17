@@ -17,7 +17,7 @@ export class MaintenanceController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles('USER', 'ADMIN')
+  @Roles('USER', 'ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'Create a new maintenance' })
   async create(@Body() dto: CreateMaintenanceDto) {
     return this.maintenanceService.create(dto);
