@@ -11,10 +11,12 @@ export default function CreateUser(): React.JSX.Element {
   const [formData, setFormData] = useState({
     firstName: '',
     email: '',
-    role: ''
+    password: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errors, setErrors] = useState<{ firstName?: string; email?: string; role?: string }>({})
+  const [errors, setErrors] = useState<{ firstName?: string; email?: string; password?: string }>(
+    {}
+  )
 
   const handleChange =
     (field: keyof typeof formData) =>
@@ -24,7 +26,7 @@ export default function CreateUser(): React.JSX.Element {
     }
 
   const validateForm = (): boolean => {
-    const newErrors: { firstName?: string; email?: string; role?: string } = {}
+    const newErrors: { firstName?: string; email?: string; password?: string } = {}
 
     if (!formData.firstName) newErrors.firstName = 'Nome é obrigatório'
     if (!formData.email) {
@@ -32,7 +34,7 @@ export default function CreateUser(): React.JSX.Element {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'E-mail inválido'
     }
-    if (!formData.role) newErrors.role = 'Cargo é obrigatório'
+    if (!formData.password) newErrors.password = 'Senha é obrigatória'
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -43,7 +45,7 @@ export default function CreateUser(): React.JSX.Element {
 
     try {
       setIsSubmitting(true)
-      await api.post('/api/users', formData) // Update the endpoint if necessary
+      await api.post('/auth/register', formData) // Update the endpoint if necessary
       navigate('/list-users') // Redirect to the user list after successful creation
     } catch (err: any) {
       console.error(err)
@@ -81,11 +83,12 @@ export default function CreateUser(): React.JSX.Element {
             error={errors.email}
           />
           <Input
-            label="Cargo"
+            label="Password"
+            type="password"
             labelVariant="default"
-            value={formData.role}
-            onChange={handleChange('role')}
-            error={errors.role}
+            value={formData.password}
+            onChange={handleChange('password')}
+            error={errors.password}
           />
           <div className="flex justify-end gap-2">
             <Button
