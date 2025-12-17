@@ -48,13 +48,7 @@ export class EquipmentController {
   }
 
 
-  @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get one equipment by ID' })
-  findOne(@Param('id') id: string) {
-    return this.equipmentService.findOne(id)
-  }
+  
 
 
   // @Get(':id/history')
@@ -86,4 +80,55 @@ export class EquipmentController {
   }
 
 
+
+  // DASHBOARD
+
+  @Get('count/equipments')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get total number of equipments' })
+  countAll(){
+   return this.equipmentService.countAll()
+  }
+
+  @Get('count/maintenance')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Count equipments in maintenance' })
+  countInMaintenance() {
+    return this.equipmentService.countInMaintenance();
+  }
+
+  @Get('count/equipments/available')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get total number of available equipments' })
+  countsAvailable(){
+   return this.equipmentService.countAvailable()
+  }
+
+  @Get('count/departaments')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get total number of equipments by department' })
+  countsByDepartment(){
+    return this.equipmentService.countByDepartment()
+  }
+
+  @Get('statistics')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get total number of equipments by status' })
+  countsEquipmentsStatus(){
+    return this.equipmentService.countEquipmentStatus()
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get one equipment by ID' })
+  findOne(@Param('id') id: string) {
+    return this.equipmentService.findOne(id)
+  }
+  
 }

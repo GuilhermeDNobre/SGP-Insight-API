@@ -215,4 +215,72 @@ export class EquipmentService {
 
     return this.prisma.equipment.update({ where: { id }, data });
   }
+
+  //DASHBOARD OPERATIONS
+  async countAll(){
+    return {
+      total: await this.prisma.equipment.count()
+    };
+  }
+
+  async countInMaintenance() {
+    const total = await this.prisma.equipment.count({
+      where: {
+        status: EquipmentStatus.EM_MANUTENCAO,
+      },
+    });
+
+    return { total };
+  }
+
+  async countAvailable() {
+    const available = await this.prisma.equipment.count({
+      where: {
+        status: EquipmentStatus.ATIVO,
+      },
+    });
+
+    return { available };
+  
+  }
+
+  async countByDepartment() {
+    const departments = await this.prisma.department.findMany();
+    const departmentCounts = await Promise.all(
+      departments.map(async (department) => {
+        const count = await this.prisma.equipment.count({
+          where: {
+            alocatedAtId: department.id,
+          },
+        });
+        return {
+          id: department.id,
+          name: department.name,
+          count,
+        };
+      }),
+    );
+
+    return { departments: departmentCounts };
+  }
+
+  async countEquipmentStatus(): Promise<Record<string, number>> {
+  const groups: any[] = await this.prisma.equipment.groupBy({
+    by: ['status'],
+    _count: { _all: true },
+  } as any);
+
+  const counts: Record<string, number> = {
+    ATIVO: 0,
+    EM_MANUTENCAO: 0,
+    DESABILITADO: 0,
+  };
+
+  for (const g of groups) {
+    const status = String(g.status).toUpperCase();
+    counts[status] = g._count?._all ?? 0;
+  }
+
+  return counts;
+}
 }
