@@ -33,7 +33,7 @@ function Profile(): React.JSX.Element {
     <div className="flex w-screen h-screen bg-white">
       <Sidebar />
 
-      <main className="grow flex flex-col items-center p-8 overflow-y-auto gap-6">
+      <main className="grow flex flex-col items-center justify-center p-8 overflow-y-auto gap-6">
         {/* Card do Perfil */}
         <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-lg text-gray-800">
           {/* Cabeçalho */}
