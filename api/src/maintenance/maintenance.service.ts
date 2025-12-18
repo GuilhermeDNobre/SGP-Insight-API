@@ -26,78 +26,6 @@ export class MaintenanceService {
     // verifica se já houve manutenção para este equipamento nos últimos 3 meses
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-    const recentMaintenances = await this.prisma.maintenance.findMany({
-      where: {
-        equipmentId: dto.equipmentId,
-        createdAt: { gte: threeMonthsAgo },
-      },
-      take: 1,
-    });
-
-    if (recentMaintenances.length) {
-      const now = new Date();
-      const trimestre = Math.floor(now.getMonth() / 3) + 1;
-
-      // verifica se já houve alertas para este equipamento para calcular recorrência
-      const lastAlert = await this.prisma.alerts.findFirst({
-        where: { equipmentId: dto.equipmentId },
-        orderBy: { createdAt: 'desc' },
-      });
-
-      let occurrenceCount = 0;
-      let lastRecurrenceAt: string | undefined = undefined;
-
-      if (lastAlert) {
-        occurrenceCount = (lastAlert.occurrenceCount ?? 0) + 1;
-        lastRecurrenceAt = lastAlert.lastRecurrenceAt
-          ? new Date(lastAlert.lastRecurrenceAt).toISOString()
-          : new Date(lastAlert.createdAt).toISOString();
-      }
-
-      const alertDto: CreateAlertDto = {
-        severity: AlertSeverity.HIGH,
-        description: `O equipamento ${equipment.name} do setor ${equipment.alocatedAt?.name ?? 'desconhecido'} possui manutenções frequentes realizadas`,
-        equipmentId: dto.equipmentId,
-        componentId: dto.componentIds && dto.componentIds.length === 1 ? dto.componentIds[0] : undefined,
-        trimestre,
-        lastRecurrenceAt,
-        occurrenceCount,
-      };
-
-      try {
-        await this.alertsService.create(alertDto as any);
-      } catch (err) {
-        console.error('Failed to create alert', err);
-      }
-    }
-    
-    const departmentId = equipment.alocatedAt?.id;
-    if (departmentId) {
-      const deptMaintCount = await this.prisma.maintenance.count({
-        where: {
-          createdAt: { gte: threeMonthsAgo },
-          equipment: { alocatedAtId: departmentId },
-        },
-      });
-
-      if (deptMaintCount > 3) {
-        const now = new Date();
-        const trimestre = Math.floor(now.getMonth() / 3) + 1;
-
-        const deptAlertDto: CreateAlertDto = {
-          severity: AlertSeverity.MEDIUM,
-          description: `Departamento ${equipment.alocatedAt?.name ?? 'desconhecido'} possui manutenções frequentes nos últimos meses`,
-          trimestre,
-        };
-
-        try {
-          await this.alertsService.create(deptAlertDto as any);
-        } catch (err) {
-          console.error('Failed to create department alert', err);
-        }
-      }
-    }
     
     if (dto.componentIds?.length) {
       const equipmentComponents = await this.prisma.component.findMany({
@@ -113,9 +41,9 @@ export class MaintenanceService {
       }
     }
 
-    return this.prisma.$transaction(async (tx) => {
-      // 1. Cria a manutenção
-      const maintenance = await tx.maintenance.create({
+    const maintenance = await this.prisma.$transaction(async (tx) => {
+      // 3.1 Cria a manutenção
+      const newMaintenance = await tx.maintenance.create({
         data: {
           technician: dto.technician,
           contact: dto.contact,
@@ -125,26 +53,33 @@ export class MaintenanceService {
         },
       });
 
-      // 2. Vincula componentes
+      // 3.2 Vincula componentes
       if (dto.componentIds?.length) {
         await tx.maintenanceComponent.createMany({
           data: dto.componentIds.map(componentId => ({
-            maintenanceId: maintenance.id,
+            maintenanceId: newMaintenance.id,
             componentId,
           })),
         });
       } 
 
-      // 3. Atualiza status do equipamento (Bloqueia)
+      // 3.3 Atualiza status do equipamento
       await tx.equipment.update({
         where: { id: dto.equipmentId },
         data: { status: EquipmentStatus.EM_MANUTENCAO },
       });
 
-      return tx.maintenance.findUnique({
+      return newMaintenance;
+    });
+
+    // 4. Gatilho de Alertas
+    this.alertsService.checkAndGenerateAlert(maintenance.equipmentId)
+      .catch(err => console.error('[ALERTS] Falha ao verificar recorrência:', err));
+
+    // Retorna a manutenção criada
+    return this.prisma.maintenance.findUnique({
         where: { id: maintenance.id },
         include: { components: { include: { component: true } } },
-      });
     });
   }
 
