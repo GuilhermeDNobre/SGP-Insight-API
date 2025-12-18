@@ -314,22 +314,26 @@ export class EquipmentService {
   }
 
   async countEquipmentStatus(): Promise<Record<string, number>> {
-  const groups: any[] = await this.prisma.equipment.groupBy({
-    by: ['status'],
-    _count: { _all: true },
-  } as any);
+    const groups: any[] = await this.prisma.equipment.groupBy({
+      by: ['status'],
+      _count: { _all: true },
+    } as any);
 
-  const counts: Record<string, number> = {
-    ATIVO: 0,
-    EM_MANUTENCAO: 0,
-    DESABILITADO: 0,
-  };
+    const counts: Record<string, number> = {
+      ATIVO: 0,
+      EM_MANUTENCAO: 0,
+      DESABILITADO: 0,
+    };
 
-  for (const g of groups) {
-    const status = String(g.status).toUpperCase();
-    counts[status] = g._count?._all ?? 0;
+    for (const g of groups) {
+      const status = String(g.status).toUpperCase();
+      counts[status] = g._count?._all ?? 0;
+    }
+
+    return counts;
   }
-
-  return counts;
-}
+  
+  async countTotalEquipments(): Promise<number> {
+    return await this.prisma.equipment.count();
+  }
 }

@@ -250,4 +250,28 @@ export class MaintenanceService {
       data: { status: 'TERMINADA'},
     });
   }
+
+  async countTotalMaintenances(): Promise<number> {
+    return await this.prisma.maintenance.count();
+  }
+
+  async countMaintenancesByStatus(): Promise<Record<string, number>> {
+    const groups: any[] = await this.prisma.maintenance.groupBy({
+      by: ['status'],
+      _count: { _all: true },
+    } as any);
+
+    const counts: Record<string, number> = {
+      ABERTA: 0,
+      EM_ANDAMENTO: 0,
+      TERMINADA: 0,
+    };
+
+    for (const g of groups) {
+      const status = String(g.status).toUpperCase();
+      counts[status] = g._count?._all ?? 0;
+    }
+
+    return counts;
+  }
 }
