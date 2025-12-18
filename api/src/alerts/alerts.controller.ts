@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { AlertsService } from './alerts.service';
 import {
   ApiTags,
@@ -19,8 +19,24 @@ export class AlertsController {
     description: 'Array of alerts',
     schema: { type: 'array', items: { type: 'object' } },
   })
-  findAll() {
-    return this.alertsService.findAll();
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('quarter') quarter?: string,
+    @Query('occurrenceCount') occurrenceCount?: string,
+    @Query('startDate') startDate?: string, 
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.alertsService.findAll(
+      Number(page || 1),
+      Number(limit || 10),
+      search,
+      quarter ? Number(quarter) : undefined,
+      occurrenceCount ? Number(occurrenceCount) : undefined,
+      startDate,
+      endDate
+    );
   }
 
   @Get(':id')
