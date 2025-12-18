@@ -101,4 +101,24 @@ async update(id: string, dto: UpdateDepartmentDto) {
     return department;
   }
 
+  async countDepartments(): Promise<number> {
+    return await this.prisma.department.count();
+  }
+
+  async listDepartmentsWithEquipmentCount() {
+    const departments = await this.prisma.department.findMany();
+    const result = await Promise.all(
+      departments.map(async (dept) => {
+        const equipmentCount = await this.prisma.equipment.count({
+          where: { alocatedAtId: dept.id },
+        });
+        return {
+          name: dept.name,
+          equipmentCount,
+        };
+      }),
+    );
+    return result;
+  }
+
 }

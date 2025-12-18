@@ -7,5 +7,6 @@ import { AlertsModule } from 'src/alerts/alerts.module';
   imports: [AlertsModule],
   controllers: [MaintenanceController],
   providers: [MaintenanceService],
+  exports: [MaintenanceService],
 })
 export class MaintenanceModule {}

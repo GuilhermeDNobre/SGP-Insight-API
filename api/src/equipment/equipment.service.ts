@@ -283,4 +283,8 @@ export class EquipmentService {
 
   return counts;
 }
+
+  async countTotalEquipments(): Promise<number> {
+    return await this.prisma.equipment.count();
+  }
 }
