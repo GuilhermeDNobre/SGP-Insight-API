@@ -11,6 +11,7 @@ import { EmailService } from './email/email.service';
 import { EmailModule } from './email/email.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { AlertsModule } from './alerts/alerts.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { AlertsModule } from './alerts/alerts.module';
     ComponentsModule,
     EmailModule,
     MaintenanceModule,
-    AlertsModule
+    AlertsModule,
+    ReportsModule
   ],
   controllers: [],
   providers: [EmailService],
