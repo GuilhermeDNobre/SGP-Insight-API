@@ -1,23 +1,25 @@
+import { useMaintenance } from '@hooks/useMaintenance'
+import Button from '@renderer/components/Button'
+import ConfirmModal from '@renderer/components/ConfirmModal'
+import Input from '@renderer/components/Input'
+import MaintenanceFilterModal, {
+  MaintenanceFilterValues
+} from '@renderer/components/MaintenanceFilterModal'
+import Sidebar from '@renderer/components/Sidebar'
+import { useSnackbar } from '@renderer/context/SnackbarContext'
+import { CheckCircle, Edit, Eye, ListFilter, Plus, Trash2 } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMaintenance } from '@hooks/useMaintenance'
-import { useSnackbar } from '@renderer/context/SnackbarContext'
-import Sidebar from '@renderer/components/Sidebar'
-import Button from '@renderer/components/Button'
-import Input from '@renderer/components/Input'
-import ConfirmModal from '@renderer/components/ConfirmModal'
-import MaintenanceFilterModal, { MaintenanceFilterValues } from '@renderer/components/MaintenanceFilterModal'
-import { Plus, Eye, Edit, Trash2, CheckCircle, ListFilter } from 'lucide-react'
 
 export default function Maintenances(): React.JSX.Element {
   const navigate = useNavigate()
   const { showSnackbar } = useSnackbar()
-  
-  const { 
-    maintenances, 
-    isLoading, 
-    loadMaintenances, 
-    deleteMaintenance, 
+
+  const {
+    maintenances,
+    isLoading,
+    loadMaintenances,
+    deleteMaintenance,
     finishMaintenance,
     page,
     totalPages,
@@ -26,7 +28,7 @@ export default function Maintenances(): React.JSX.Element {
 
   const [searchTerm, setSearchTerm] = useState('')
   const [appliedSearch, setAppliedSearch] = useState('')
-  
+
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [activeFilters, setActiveFilters] = useState<MaintenanceFilterValues>({})
 
@@ -99,36 +101,35 @@ export default function Maintenances(): React.JSX.Element {
   }
 
   const clearFilter = (key: keyof MaintenanceFilterValues): void => {
-    setActiveFilters(prev => {
-      const newFilters = { ...prev };
-      delete newFilters[key]; // Remove a chave fisicamente do objeto
-      return newFilters;
-    });
-  };
-    
+    setActiveFilters((prev) => {
+      const newFilters = { ...prev }
+      delete newFilters[key] // Remove a chave fisicamente do objeto
+      return newFilters
+    })
+  }
+
   return (
     <div className="w-screen h-screen bg-white flex justify-center items-center relative py-[120px]">
       <Sidebar />
       <main className="flex w-full max-w-[1400px] h-screen overflow-hidden py-20 px-8 flex-col items-start gap-2.5">
-        
         {/* Header */}
         <div className="flex flex-col w-full gap-2.5 shrink-0 top-[120px] bg-white pb-4 z-10">
           <h1 className="font-bold text-2xl leading-normal">Manutenções</h1>
           <div className="flex flex-row gap-2.5 w-full">
-            <Input 
-              placeholder="Buscar por técnico ou equipamento..." 
+            <Input
+              placeholder="Buscar por técnico ou equipamento..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)} // Atualiza estado
-              onKeyDown={(e) => { 
-                e.key === 'Enter' &&handleSearchTrigger() // Busca ao dar Enter
+              onChange={(e) => setSearchTerm(e.target.value)} // Atualiza estado
+              onKeyDown={(e) => {
+                e.key === 'Enter' && handleSearchTrigger() // Busca ao dar Enter
               }}
               labelVariant="default"
               className="h-[30px] flex-1"
-              type='search'
+              type="search"
             />
-            <Button 
+            <Button
               label="Nova Manutenção"
-              variant='secondary'
+              variant="secondary"
               onClick={() => navigate('/maintenance-create')}
               className="h-10h-[30px] w-[196px] whitespace-nowrap"
               endIcon={<Plus size={18} />}
@@ -144,33 +145,52 @@ export default function Maintenances(): React.JSX.Element {
           {(activeFilters.status || activeFilters.openDate || activeFilters.closeDate) && (
             <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-gray-100">
               <span className="text-xs text-gray-500 font-medium">Filtros ativos:</span>
-              
+
               {activeFilters.status && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs border border-blue-100">
-                  <span className="font-semibold">Status:</span> 
-                  {activeFilters.status.split(',').map(s => s.replace('_', ' ')).join(', ').toLowerCase()}
-                  <button onClick={() => clearFilter('status')} className="ml-1 hover:text-blue-900 font-bold">×</button>
+                  <span className="font-semibold">Status:</span>
+                  {activeFilters.status
+                    .split(',')
+                    .map((s) => s.replace('_', ' '))
+                    .join(', ')
+                    .toLowerCase()}
+                  <button
+                    onClick={() => clearFilter('status')}
+                    className="ml-1 hover:text-blue-900 font-bold"
+                  >
+                    ×
+                  </button>
                 </span>
               )}
 
               {activeFilters.openDate && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-50 text-green-700 text-xs border border-green-100">
-                  <span className="font-semibold">Abertura:</span> 
+                  <span className="font-semibold">Abertura:</span>
                   {/* Força o display da string exata para não confundir visualmente */}
                   {activeFilters.openDate.split('-').reverse().join('/')}
-                  <button onClick={() => clearFilter('openDate')} className="ml-1 hover:text-green-900 font-bold">×</button>
+                  <button
+                    onClick={() => clearFilter('openDate')}
+                    className="ml-1 hover:text-green-900 font-bold"
+                  >
+                    ×
+                  </button>
                 </span>
               )}
 
               {activeFilters.closeDate && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-orange-50 text-orange-700 text-xs border border-orange-100">
-                  <span className="font-semibold">Conclusão:</span> 
+                  <span className="font-semibold">Conclusão:</span>
                   {activeFilters.closeDate.split('-').reverse().join('/')}
-                  <button onClick={() => clearFilter('closeDate')} className="ml-1 hover:text-orange-900 font-bold">×</button>
+                  <button
+                    onClick={() => clearFilter('closeDate')}
+                    className="ml-1 hover:text-orange-900 font-bold"
+                  >
+                    ×
+                  </button>
                 </span>
               )}
 
-              <button 
+              <button
                 onClick={handleClearFilters}
                 className="text-xs text-red-500 hover:text-red-700 hover:underline ml-2 font-medium"
               >
@@ -197,73 +217,83 @@ export default function Maintenances(): React.JSX.Element {
               <tbody className="divide-y divide-gray-200">
                 {isLoading ? (
                   <tr>
-                      <td colSpan={5} className="text-center py-20">
-                        <div className="flex flex-col justify-center items-center gap-3">
-                          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
+                    <td colSpan={5} className="text-center py-20">
+                      <div className="flex flex-col justify-center items-center gap-3">
+                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
                         <p className="text-gray-500 text-lg">Carregando manutenções...</p>
                       </div>
                     </td>
                   </tr>
                 ) : maintenances.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-20">Nenhuma manutenção encontrada.</td></tr>
+                  <tr>
+                    <td colSpan={6} className="text-center py-20">
+                      Nenhuma manutenção encontrada.
+                    </td>
+                  </tr>
                 ) : (
                   maintenances.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50 transition-duration-150">
-                      <td className="px-6 py-4 font-medium text-gray-900">{item.equipment?.name || 'N/A'}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        {item.equipment?.name || 'N/A'}
+                      </td>
                       <td className="px-6 py-4">{item.technician}</td>
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-bold
-                          ${item.status === 'ABERTA' ? 'bg-blue-100 text-blue-800' : 
-                            item.status === 'EM_ANDAMENTO' ? 'bg-yellow-100 text-yellow-800' : 
-                            'bg-green-100 text-green-800'}`}>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-bold
+                          ${
+                            item.status === 'ABERTA'
+                              ? 'bg-blue-100 text-blue-800'
+                              : item.status === 'EM_ANDAMENTO'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-green-100 text-green-800'
+                          }`}
+                        >
                           {item.status.replace('_', ' ')}
                         </span>
                       </td>
                       <td className="px-6 py-4">{new Date(item.createdAt).toLocaleDateString()}</td>
                       {item.finishedAt ? (
-                        <td className="px-6 py-4">{new Date(item.finishedAt).toLocaleDateString()}</td>
+                        <td className="px-6 py-4">
+                          {new Date(item.finishedAt).toLocaleDateString()}
+                        </td>
                       ) : (
                         <td className="px-6 py-4 text-gray-400 italic">Em andamento</td>
                       )}
                       <td className="px-6 py-4 text-right flex justify-end gap-2">
                         <button
-                          title='Ver Detalhes' 
-                          onClick={() => 
-                            navigate(`/maintenance-details/${item.id}`)
-                          }
-                          className="p-1 text-gray-500 hover:bg-gray-100 rounded">
+                          title="Ver Detalhes"
+                          onClick={() => navigate(`/maintenance-details/${item.id}`)}
+                          className="p-1 text-gray-500 hover:bg-gray-100 rounded"
+                        >
                           <Eye size={18} />
                         </button>
 
                         {/* Só mostra Editar e Finalizar se não estiver TERMINADA */}
                         {item.status !== 'TERMINADA' && (
                           <>
-                            <button 
-                              title='Editar'
-                              onClick={() => 
-                                navigate(`/maintenance-edit/${item.id}`)
-                              } 
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                            <button
+                              title="Editar"
+                              onClick={() => navigate(`/maintenance-edit/${item.id}`)}
+                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                            >
                               <Edit size={18} />
                             </button>
 
-                            <button 
-                              title='Finalizar Manutenção'
-                              onClick={() =>
-                                handleOpenFinish(item.id)
-                              } 
-                              className="p-1 text-green-600 hover:bg-green-50 rounded">
+                            <button
+                              title="Finalizar Manutenção"
+                              onClick={() => handleOpenFinish(item.id)}
+                              className="p-1 text-green-600 hover:bg-green-50 rounded"
+                            >
                               <CheckCircle size={18} />
                             </button>
                           </>
                         )}
 
-                        <button 
-                          title='Remover Manutenção'
-                          onClick={() =>
-                            handleOpenDelete(item.id)
-                          } 
-                          className="p-1 text-red-600 hover:bg-red-50 rounded">
+                        <button
+                          title="Remover Manutenção"
+                          onClick={() => handleOpenDelete(item.id)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                        >
                           <Trash2 size={18} />
                         </button>
                       </td>
@@ -273,13 +303,14 @@ export default function Maintenances(): React.JSX.Element {
               </tbody>
             </table>
           </div>
-          
+
           {/* Rodapé de Paginação */}
           <div className="border-t border-gray-200 px-6 py-4 flex items-center justify-between bg-gray-50 shrink-0">
             <span className="text-sm text-gray-700">
-              Página <span className="font-semibold text-gray-900">{page}</span> de <span className="font-semibold text-gray-900">{totalPages || 1}</span>
+              Página <span className="font-semibold text-gray-900">{page}</span> de{' '}
+              <span className="font-semibold text-gray-900">{totalPages || 1}</span>
             </span>
-            
+
             <div className="flex gap-2">
               <button
                 onClick={() => changePage(page - 1)}
@@ -308,7 +339,7 @@ export default function Maintenances(): React.JSX.Element {
           onCancel={() => setDeleteModalOpen(false)}
           variant="danger"
         />
-        
+
         <ConfirmModal
           isOpen={finishModalOpen}
           title="Finalizar Manutenção"
@@ -318,7 +349,6 @@ export default function Maintenances(): React.JSX.Element {
           variant="success"
           confirmText="Finalizar"
         />
-
       </main>
 
       <MaintenanceFilterModal

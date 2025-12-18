@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { PrismaService } from "src/prisma/prisma.service";
@@ -106,6 +106,14 @@ async update(id: string, dto: UpdateDepartmentDto) {
     const department = await this.prisma.department.findUnique({ where: { id } });
     if (!department) {
       throw new NotFoundException(`Department with id "${id}" not found`);
+    }
+
+    // Check if there are equipments allocated to this department
+    const equipmentsCount = await this.prisma.equipment.count({
+      where: { alocatedAtId: id }
+    });
+    if (equipmentsCount > 0) {
+      throw new BadRequestException(`Cannot delete department "${department.name}" because it has ${equipmentsCount} equipment(s) allocated to it.`);
     }
 
     return await this.prisma.department.delete({ where: { id } });  
