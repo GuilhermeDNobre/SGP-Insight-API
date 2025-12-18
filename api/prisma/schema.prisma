@@ -35,20 +35,21 @@ model Department {
 }
 
 model Equipment {
-  id           String     @id @default(uuid())
+  id           String          @id @default(uuid())
   name         String
-  ean          String     @unique
+  ean          String          @unique
   status       EquipmentStatus @default(ATIVO)
-  createdAt    DateTime   @default(now())
+  createdAt    DateTime        @default(now())
   disabledAt   DateTime?
   alocatedAtId String
-  alocatedAt   Department @relation(fields: [alocatedAtId], references: [id])
+  alocatedAt   Department      @relation(fields: [alocatedAtId], references: [id])
 
   moves EquipmentMove[]
 
   components Component[]
 
   maintenances Maintenance[]
+  Alerts       Alerts[]
 }
 
 enum EquipmentStatus {
@@ -79,6 +80,7 @@ model Component {
   equipment   Equipment       @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
 
   maintenances MaintenanceComponent[]
+  Alerts       Alerts[]
 }
 
 enum ComponentStatus {
@@ -105,6 +107,7 @@ model Maintenance {
   equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
 
   components MaintenanceComponent[]
+  Alerts     Alerts[]
 }
 
 enum MaintenanceStatus {
@@ -123,11 +126,26 @@ model MaintenanceComponent {
   @@id([maintenanceId, componentId])
 }
 
-model Alerts{
-  id          String            @id @default(uuid())
-  severity    AlertSeverity     @default(LOW)
+model Alerts {
+  id          String        @id @default(uuid())
+  severity    AlertSeverity @default(LOW)
   description String
-  createdAt   DateTime          @default(now())
+  createdAt   DateTime      @default(now())
+
+  // Optional relations to link alerts to specific resources
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
+
+  componentId String?
+  component   Component? @relation(fields: [componentId], references: [id])
+
+  maintenanceId String?
+  maintenance   Maintenance? @relation(fields: [maintenanceId], references: [id])
+
+  // recurrence / tracking fields
+  trimestre        Int? // quarter (1-4)
+  lastRecurrenceAt DateTime? // timestamp of last recurrence
+  occurrenceCount  Int       @default(0) // number of times this alert occurred for the same target
 }
 
 enum AlertSeverity {

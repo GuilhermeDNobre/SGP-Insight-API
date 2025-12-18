@@ -29,6 +29,6 @@ export class AlertsController {
   @ApiOkResponse({ description: 'Alert found', schema: { type: 'object' } })
   @ApiNotFoundResponse({ description: 'Alert not found' })
   findOne(@Param('id') id: string) {
-    return this.alertsService.findOne(+id);
+    return this.alertsService.findOne(id);
   }
 }
