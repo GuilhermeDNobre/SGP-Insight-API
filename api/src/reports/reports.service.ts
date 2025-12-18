@@ -18,7 +18,7 @@ export class ReportsService {
     private maintenanceService: MaintenanceService,
   ) {}
 
-  async generateReport(): Promise<string> {
+  async generateReport(): Promise<Buffer> {
 
     // Gather data
     const deptCount = await this.departmentService.countDepartments();
@@ -100,11 +100,11 @@ export class ReportsService {
     const filePath = path.join(folderPath, fileName);
 
     // Save PDF
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<Buffer>((resolve, reject) => {
       pdfDoc.getBuffer((buffer: Buffer) => {
         fs.writeFile(filePath, buffer, (err) => {
           if (err) reject(err);
-          else resolve(filePath);
+          else resolve(buffer);
         });
       });
     });

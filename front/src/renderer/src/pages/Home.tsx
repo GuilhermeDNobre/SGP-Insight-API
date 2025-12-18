@@ -1,6 +1,7 @@
 import Button from '@components/Button'
 import Sidebar from '@components/Sidebar'
 import StatCard from '@components/StatCard'
+import api from '@renderer/services/api'
 import {
   AlertTriangle,
   BarChart3,
@@ -24,6 +25,11 @@ import {
   XAxis,
   YAxis
 } from 'recharts'
+
+interface RawDepartmentData {
+  name: string
+  count: number
+}
 
 // Tipos para os dados
 interface Stats {
@@ -50,11 +56,6 @@ interface Alerta {
   description: string
 }
 
-interface RawDepartmentData {
-  name: string
-  count: number
-}
-
 export default function Home(): React.JSX.Element {
   const navigate = useNavigate()
 
@@ -69,9 +70,40 @@ export default function Home(): React.JSX.Element {
   })
   const [loading, setLoading] = useState(true)
 
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
+
+  const handleGenerateReport = async (): Promise<void> => {
+    try {
+      setIsGeneratingReport(true)
+
+      const response = await api.post('/reports/generate', {}, {
+        responseType: 'blob' 
+      })
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      link.setAttribute('download', `Relatorio-SGP-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`);
+      
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      // alert('Relatório gerado com sucesso!')
+    } catch (err: any) {
+      console.error(err)
+      alert('Erro ao gerar relatório.')
+    } finally {
+      setIsGeneratingReport(false)
+    }
+  }
+
   // Função para buscar dados da API
   useEffect(() => {
-    const fetchData = async (): Promise<void>  => {
+    const fetchData = async (): Promise<void> => {
       try {
         // Assumindo que o token JWT está armazenado em localStorage
         const token = localStorage.getItem('token')
@@ -93,7 +125,7 @@ export default function Home(): React.JSX.Element {
         const avail = await availRes.json()
         const dept = await deptRes.json()
         const stat = await statusRes.json()
-        const alertsResponse = await alertRes.json()
+        const alertResponse = await alertRes.json()
 
         // Processar dados dos departamentos
         const processedDept: Departamento[] = dept.departments.map((d: RawDepartmentData, index: number) => ({
@@ -122,7 +154,7 @@ export default function Home(): React.JSX.Element {
 
         setDepartamentos(processedDept)
         setStatusEquipamentos(processedStat)
-        setAlertas(alertsResponse.data || [])
+        setAlertas(alertResponse.data || [])
         setLoading(false)
       } catch (error) {
         console.error('Erro ao buscar dados:', error)
@@ -137,14 +169,14 @@ export default function Home(): React.JSX.Element {
     <div className="flex w-screen h-screen bg-white">
       <Sidebar />
 
-      <main className="flex-1 overflow-y-auto p-8 bg-white">
+      <main className="flex-1 overflow-y- p-8 bg-white">
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <p>Carregando dados...</p>
           </div>
         ) : (
           <>
-            <div className="pt-6 p-16">
+            <div className="pt-6 h-full flex flex-col">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 pt-6">
                 <StatCard
                   title="Total de Equipamentos"
@@ -166,10 +198,10 @@ export default function Home(): React.JSX.Element {
                 />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 py-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 py-6 flex-1 min-h-0">
                 <div className="lg:col-span-2 flex flex-col gap-6">
                   {/* Gráfico de Barras */}
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col h-[380px]">
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col h-auto md:h-[345px]">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-bold text-[var(--txt)] w-full text-center">
                         Distribuição por departamentos
@@ -224,7 +256,7 @@ export default function Home(): React.JSX.Element {
                   </div>
 
                   {/* Gráfico de Pizza */}
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col h-[380px]">
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col h-auto md:h-[345px]">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-bold text-[var(--txt)] w-full text-center">
                         Status do Equipamento
@@ -235,7 +267,7 @@ export default function Home(): React.JSX.Element {
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
-                            data={statusEquipamentos}
+                            data={statusEquipamentos as any}
                             cx="50%"
                             cy="50%"
                             innerRadius={0}
@@ -269,33 +301,43 @@ export default function Home(): React.JSX.Element {
                 </div>
 
                 {/* Alertas */}
-                <div className="lg:col-span-1 bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col h-full">
-                  <div className="flex justify-between items-center pb-6">
-                    <h3 className="text-xl font-bold text-[var(--txt)]">Alertas</h3>
-                    <AlertTriangle className="text-[var(--atencio)] opacity-80" size={24} />
+                <div className="flex flex-col gap-6">
+                  <div className="lg:col-span-1 bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col min-h-0">
+                    <div className="flex justify-between items-center pb-6">
+                      <h3 className="text-xl font-bold text-[var(--txt)]">Alertas</h3>
+                      <AlertTriangle className="text-[var(--atencio)] opacity-80" size={24} />
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto flex flex-col gap-3 pr-2">
+                      {alertas.map((alert) => (
+                        <div
+                          key={alert.id}
+                          className="bg-yellow-50 border border-yellow-100 rounded-lg p-4"
+                        >
+                          <h4 className="text-xs font-bold text-[var(--atencio)] uppercase mb-1">
+                            {alert.severity || 'Alerta'}
+                          </h4>
+                          <p className="text-sm text-gray-700 leading-snug">{alert.description}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex justify-center mt-6 pt-4 border-t border-gray-100">
+                      <Button
+                        label="Ver todos os alertas"
+                        className="w-full bg-[var(--atencio)] text-white hover:opacity-90"
+                        onClick={() => navigate('/alerts')}
+                      />
+                    </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto flex flex-col gap-3 pr-2">
-                    {alertas.map((alert) => (
-                      <div
-                        key={alert.id}
-                        className="bg-yellow-50 border border-yellow-100 rounded-lg p-4"
-                      >
-                        <h4 className="text-xs font-bold text-[var(--atencio)] uppercase mb-1">
-                          {alert.severity || 'Alerta'}
-                        </h4>
-                        <p className="text-sm text-gray-700 leading-snug">{alert.description}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex justify-center mt-6 pt-4 border-t border-gray-100">
-                    <Button
-                      label="Ver todos os alertas"
-                      className="w-full bg-[var(--atencio)] text-white hover:opacity-90"
-                      onClick={() => navigate('/alerts')}
-                    />
-                  </div>
+                  <Button
+                    label={isGeneratingReport ? 'Gerando...' : 'Gerar Relatorio'}
+                    variant="primary"
+                    className="px-6"
+                    disabled={isGeneratingReport}
+                    onClick={handleGenerateReport}
+                  />
                 </div>
               </div>
             </div>
