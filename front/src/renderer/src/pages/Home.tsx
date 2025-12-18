@@ -50,6 +50,11 @@ interface Alerta {
   description: string
 }
 
+interface RawDepartmentData {
+  name: string
+  count: number
+}
+
 export default function Home(): React.JSX.Element {
   const navigate = useNavigate()
 
@@ -66,7 +71,7 @@ export default function Home(): React.JSX.Element {
 
   // Função para buscar dados da API
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async (): Promise<void>  => {
       try {
         // Assumindo que o token JWT está armazenado em localStorage
         const token = localStorage.getItem('token')
@@ -80,7 +85,7 @@ export default function Home(): React.JSX.Element {
           fetch(`${baseUrl}/equipment/count/equipments/available`, { headers }),
           fetch(`${baseUrl}/equipment/count/departaments`, { headers }),
           fetch(`${baseUrl}/equipment/statistics`, { headers }),
-          fetch(`${baseUrl}/alerts`, { headers })
+          fetch(`${baseUrl}/alerts?page=1&limit=5`, { headers })
         ])
 
         const total = await totalRes.json()
@@ -88,10 +93,10 @@ export default function Home(): React.JSX.Element {
         const avail = await availRes.json()
         const dept = await deptRes.json()
         const stat = await statusRes.json()
-        const alerts = await alertRes.json()
+        const alertsResponse = await alertRes.json()
 
         // Processar dados dos departamentos
-        const processedDept: Departamento[] = dept.departments.map((d: any, index: number) => ({
+        const processedDept: Departamento[] = dept.departments.map((d: RawDepartmentData, index: number) => ({
           name: d.name,
           quantidade: d.count,
           color: ['#a78bfa', '#211054', '#7c3aed', '#312e81'][index % 4] // cores cíclicas
@@ -117,7 +122,7 @@ export default function Home(): React.JSX.Element {
 
         setDepartamentos(processedDept)
         setStatusEquipamentos(processedStat)
-        setAlertas(alerts)
+        setAlertas(alertsResponse.data || [])
         setLoading(false)
       } catch (error) {
         console.error('Erro ao buscar dados:', error)
@@ -230,7 +235,7 @@ export default function Home(): React.JSX.Element {
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
-                            data={statusEquipamentos as any}
+                            data={statusEquipamentos}
                             cx="50%"
                             cy="50%"
                             innerRadius={0}
@@ -288,6 +293,7 @@ export default function Home(): React.JSX.Element {
                     <Button
                       label="Ver todos os alertas"
                       className="w-full bg-[var(--atencio)] text-white hover:opacity-90"
+                      onClick={() => navigate('/alerts')}
                     />
                   </div>
                 </div>
