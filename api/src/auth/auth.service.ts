@@ -1,37 +1,37 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
 import { UsersService } from "src/users/users.service";
 import { LoginInfoDto } from "./dto/login-dto";
 import { CreateUserDto } from "src/users/dto/create-user-dto";
 import { EmailService } from "src/email/email.service";
 import { PrismaService } from "src/prisma/prisma.service";
 import bcrypt from "node_modules/bcryptjs";
+import type { IAuthMechanism } from "./interfaces/auth-mechanism.interface";
 
 @Injectable()
 export class AuthService {
   constructor(
-    private jwtService: JwtService,
+    private authMechanism: IAuthMechanism,
     private usersService: UsersService,
     private emailService: EmailService,
     private prisma: PrismaService
   ) {}
-  
+
   async validateUser({ email, password }: LoginInfoDto) {
-    const user = await this.usersService.validateUserExistence(email, password);
-      if (!user || user.disabled || user.deleted) return null;
-        const payload = {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-      };
-    return this.jwtService.sign(payload);
+    const user = await this.authMechanism.validateUser(email, password);
+    if (!user) return null;
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    };
+    return this.authMechanism.generateToken(payload);
   }
 
   async registerUser({ email, password, firstName }: CreateUserDto) {
     const user = await this.usersService.createUser({ email, password, firstName });
     if (!user) return null;
-    return this.jwtService.sign(user);
+    return this.authMechanism.generateToken(user);
   }
 
   async forgotPassword(email: string) {
@@ -40,7 +40,7 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('Email não encontrado');
     }
-    
+
     const newPassword = generateDistinctPassword(8);
 
     const hashed = await bcrypt.hash(newPassword, 10);
@@ -60,7 +60,7 @@ export class AuthService {
       throw new BadRequestException('Senhas não conferem');
     }
 
-    const payload = this.jwtService.verify(token);
+    const payload = this.authMechanism.verifyToken(token);
 
     const hashed = await bcrypt.hash(newPassword, 10);
 
@@ -71,8 +71,7 @@ export class AuthService {
 
     return { message: 'Senha alterada com sucesso' };
   }
-
-} 
+}
 
 function generateDistinctPassword(length: number): string {
   const pool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -89,3 +88,4 @@ function generateDistinctPassword(length: number): string {
 
   return password;
 }
+

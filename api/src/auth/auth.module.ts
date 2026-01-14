@@ -8,6 +8,8 @@ import { PassportModule } from "@nestjs/passport";
 import { LocalStrategy } from "./strategies/local.strategy";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 import { EmailService } from "src/email/email.service";
+import { IAuthMechanism } from "./interfaces/auth-mechanism.interface";
+import { JwtAuthMechanism } from "./implementations/jwt-auth-mechanism";
 
 @Module({
   imports: [
@@ -20,6 +22,15 @@ import { EmailService } from "src/email/email.service";
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, EmailService,LocalStrategy, JwtStrategy],
+  providers: [
+    AuthService,
+    EmailService,
+    LocalStrategy,
+    JwtStrategy,
+    {
+      provide: IAuthMechanism,
+      useClass: JwtAuthMechanism,
+    },
+  ],
 })
 export class AuthModule {}
